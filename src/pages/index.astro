@@ -12,6 +12,11 @@
 
 // ── Imports de componentes React (agregar aquí conforme se creen) ──
 import { CpuViewer } from "../components/CpuViewer";
+import { ColaProcesos } from "../components/ColaProcesos";
+import { ControlesSimulacion } from "../components/ControlesSimulacion";
+import { useSimuladorStore } from "../store/useSimuladorStore";
+
+const { colas } = useSimuladorStore.getState();
 
 // ── Import de estilos globales ──
 import "../styles/global.css";
@@ -112,55 +117,12 @@ import "../styles/global.css";
       >
         <!-- Sección: Procesos Nuevos -->
         <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
-          <div class="flex items-center gap-2 mb-3 shrink-0">
-            <div class="w-2 h-2 rounded-full bg-violet-500 shadow-sm shadow-violet-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Procesos Nuevos
-            </h2>
-            <!-- Badge contador (placeholder) -->
-            <span
-              class="ml-auto text-xs font-mono font-medium text-violet-300
-                     bg-violet-500/15 px-2 py-0.5 rounded-full border border-violet-500/30"
-            >
-              0
-            </span>
-          </div>
-
-          <!-- TODO: Insertar aquí el componente React <NuevosProcesos client:load /> -->
-          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
-            <div
-              class="flex items-center justify-center h-full
-                     text-slate-600 text-sm italic select-none"
-            >
-              Componente React: NuevosProcesos
-            </div>
-          </div>
+          <ColaProcesos client:load titulo="Procesos Nuevos" procesos={colas.nuevos} />
         </section>
 
         <!-- Sección: Cola de Listos -->
         <section class="flex-1 flex flex-col overflow-hidden p-4">
-          <div class="flex items-center gap-2 mb-3 shrink-0">
-            <div class="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Cola de Listos
-            </h2>
-            <span
-              class="ml-auto text-xs font-mono font-medium text-amber-300
-                     bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30"
-            >
-              0
-            </span>
-          </div>
-
-          <!-- TODO: Insertar aquí el componente React <ColaListos client:load /> -->
-          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
-            <div
-              class="flex items-center justify-center h-full
-                     text-slate-600 text-sm italic select-none"
-            >
-              Componente React: ColaListos
-            </div>
-          </div>
+          <ColaProcesos client:load titulo="Cola de Listos" procesos={colas.listos} />
         </section>
       </aside>
 
@@ -190,21 +152,7 @@ import "../styles/global.css";
 
         <!-- Sub-sección: Controles de Tiempo / Simulación -->
         <section class="w-full max-w-2xl">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-2 h-2 rounded-full bg-cyan-500 shadow-sm shadow-cyan-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Controles de Simulación
-            </h2>
-          </div>
-
-          <!-- TODO: Insertar aquí el componente React <ControlesSimulacion client:load /> -->
-          <div
-            class="w-full h-32 rounded-xl border border-dashed border-slate-700
-                   bg-slate-900/50 flex items-center justify-center
-                   text-slate-600 text-sm italic select-none"
-          >
-            Componente React: ControlesSimulacion
-          </div>
+          <ControlesSimulacion client:load />
         </section>
 
         <!-- Sub-sección: Visualización adicional (Memoria, Gantt, etc.) -->
@@ -237,54 +185,12 @@ import "../styles/global.css";
       >
         <!-- Sección: Cola de Bloqueados (E/S) -->
         <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
-          <div class="flex items-center gap-2 mb-3 shrink-0">
-            <div class="w-2 h-2 rounded-full bg-red-500 shadow-sm shadow-red-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Cola de Bloqueados (E/S)
-            </h2>
-            <span
-              class="ml-auto text-xs font-mono font-medium text-red-300
-                     bg-red-500/15 px-2 py-0.5 rounded-full border border-red-500/30"
-            >
-              0
-            </span>
-          </div>
-
-          <!-- TODO: Insertar aquí el componente React <ColaBloqueados client:load /> -->
-          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
-            <div
-              class="flex items-center justify-center h-full
-                     text-slate-600 text-sm italic select-none"
-            >
-              Componente React: ColaBloqueados
-            </div>
-          </div>
+          <ColaProcesos client:load titulo="Cola de Bloqueados (E/S)" procesos={colas.bloqueadosES} />
         </section>
 
         <!-- Sección: Procesos Terminados -->
         <section class="flex-1 flex flex-col overflow-hidden p-4">
-          <div class="flex items-center gap-2 mb-3 shrink-0">
-            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Procesos Terminados
-            </h2>
-            <span
-              class="ml-auto text-xs font-mono font-medium text-emerald-300
-                     bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30"
-            >
-              0
-            </span>
-          </div>
-
-          <!-- TODO: Insertar aquí el componente React <ProcesosTerminados client:load /> -->
-          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
-            <div
-              class="flex items-center justify-center h-full
-                     text-slate-600 text-sm italic select-none"
-            >
-              Componente React: ProcesosTerminados
-            </div>
-          </div>
+          <ColaProcesos client:load titulo="Procesos Terminados" procesos={colas.terminados} />
         </section>
       </aside>
     </div>
