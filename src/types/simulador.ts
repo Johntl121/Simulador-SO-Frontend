@@ -13,8 +13,15 @@ export interface EstadoGlobalSO {
     relojGlobal: number;
     estado: "PAUSADO" | "EJECUTANDO" | "TERMINADO";
     metricaThrashing: number;
+    velocidadMultiplicador: number;
   };
   procesador: {
     cpuActiva: Proceso | null;
+  };
+  colas: {
+    nuevos: Proceso[];
+    listos: Proceso[];
+    bloqueadosES: Proceso[];
+    terminados: Proceso[];
   };
 }
