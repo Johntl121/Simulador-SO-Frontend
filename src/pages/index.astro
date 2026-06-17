@@ -1,17 +1,292 @@
 ---
+/**
+ * index.astro — Dashboard principal del Simulador de Sistema Operativo
+ *
+ * Layout de pantalla completa (100vh) con CSS Grid de 12 columnas:
+ *   - Columna izquierda  (col-span-3): Procesos Nuevos + Cola de Listos
+ *   - Columna central     (col-span-6): CPU + Controles de Tiempo
+ *   - Columna derecha     (col-span-3): Cola de Bloqueados + Terminados
+ *
+ * Los componentes React se insertarán donde se indican los comentarios.
+ */
+
+// ── Imports de componentes React (agregar aquí conforme se creen) ──
 import { CpuViewer } from "../components/CpuViewer";
+
+// ── Import de estilos globales ──
+import "../styles/global.css";
 ---
 
-<html lang="es">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<title>Simulador SO - Frontend</title>
-	</head>
-	<body
-		class="bg-slate-950 min-h-screen p-8 flex items-center justify-center"
-	>
-		<CpuViewer client:load />
-	</body>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Dashboard visual para un simulador de sistemas operativos — gestión de procesos, CPU y colas de planificación."
+    />
+    <title>Simulador SO — Dashboard</title>
+
+    <!-- Google Fonts: Inter para UI moderna -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body
+    class="bg-slate-950 text-slate-100 font-[Inter,sans-serif] h-screen overflow-hidden flex flex-col"
+  >
+    <!-- ════════════════════════════════════════════════════════════════
+         HEADER — Barra superior fija
+         ════════════════════════════════════════════════════════════════ -->
+    <header
+      class="h-16 shrink-0 flex items-center justify-between px-6
+             bg-slate-900/80 backdrop-blur-md border-b border-slate-700/60"
+    >
+      <!-- Título e indicador de versión -->
+      <div class="flex items-center gap-3">
+        <!-- Ícono decorativo de terminal -->
+        <div
+          class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400
+                 flex items-center justify-center shadow-lg shadow-blue-500/20"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+        </div>
+
+        <h1 class="text-lg font-bold tracking-tight">
+          Simulador de Sistema Operativo
+          <span
+            class="ml-2 text-xs font-mono font-medium text-slate-400
+                   bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700"
+          >
+            v1.0
+          </span>
+        </h1>
+      </div>
+
+      <!-- Placeholder: aquí se puede insertar un indicador de estado global -->
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 text-sm text-slate-400">
+          <span class="relative flex h-2.5 w-2.5">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"
+            ></span>
+          </span>
+          Sistema activo
+        </div>
+      </div>
+    </header>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GRID PRINCIPAL — 3 columnas (3 + 6 + 3 de 12)
+         Ocupa todo el espacio restante debajo del header.
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="flex-1 grid grid-cols-12 gap-0 overflow-hidden min-h-0">
+      <!-- ─────────────────────────────────────────────────────────────
+           COLUMNA IZQUIERDA (col-span-3)
+           Contiene: Procesos Nuevos + Cola de Listos
+           ───────────────────────────────────────────────────────────── -->
+      <aside
+        class="col-span-3 bg-slate-900 border-r border-slate-700/60
+               flex flex-col overflow-hidden"
+      >
+        <!-- Sección: Procesos Nuevos -->
+        <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
+          <div class="flex items-center gap-2 mb-3 shrink-0">
+            <div class="w-2 h-2 rounded-full bg-violet-500 shadow-sm shadow-violet-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Procesos Nuevos
+            </h2>
+            <!-- Badge contador (placeholder) -->
+            <span
+              class="ml-auto text-xs font-mono font-medium text-violet-300
+                     bg-violet-500/15 px-2 py-0.5 rounded-full border border-violet-500/30"
+            >
+              0
+            </span>
+          </div>
+
+          <!-- TODO: Insertar aquí el componente React <NuevosProcesos client:load /> -->
+          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
+            <div
+              class="flex items-center justify-center h-full
+                     text-slate-600 text-sm italic select-none"
+            >
+              Componente React: NuevosProcesos
+            </div>
+          </div>
+        </section>
+
+        <!-- Sección: Cola de Listos -->
+        <section class="flex-1 flex flex-col overflow-hidden p-4">
+          <div class="flex items-center gap-2 mb-3 shrink-0">
+            <div class="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Cola de Listos
+            </h2>
+            <span
+              class="ml-auto text-xs font-mono font-medium text-amber-300
+                     bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30"
+            >
+              0
+            </span>
+          </div>
+
+          <!-- TODO: Insertar aquí el componente React <ColaListos client:load /> -->
+          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
+            <div
+              class="flex items-center justify-center h-full
+                     text-slate-600 text-sm italic select-none"
+            >
+              Componente React: ColaListos
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- ─────────────────────────────────────────────────────────────
+           COLUMNA CENTRAL (col-span-6)
+           Contiene: Procesador (CPU) + Controles de Tiempo
+           ───────────────────────────────────────────────────────────── -->
+      <main
+        class="col-span-6 bg-slate-950 flex flex-col items-center
+               overflow-y-auto p-6 gap-6"
+      >
+        <!-- Sub-sección: Procesador (CPU) -->
+        <section class="w-full max-w-2xl">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Procesador (CPU)
+            </h2>
+          </div>
+
+          <!--
+            Componente React existente: CpuViewer
+            Se renderiza con client:load para hidratación inmediata.
+          -->
+          <CpuViewer client:load />
+        </section>
+
+        <!-- Sub-sección: Controles de Tiempo / Simulación -->
+        <section class="w-full max-w-2xl">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-2 h-2 rounded-full bg-cyan-500 shadow-sm shadow-cyan-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Controles de Simulación
+            </h2>
+          </div>
+
+          <!-- TODO: Insertar aquí el componente React <ControlesSimulacion client:load /> -->
+          <div
+            class="w-full h-32 rounded-xl border border-dashed border-slate-700
+                   bg-slate-900/50 flex items-center justify-center
+                   text-slate-600 text-sm italic select-none"
+          >
+            Componente React: ControlesSimulacion
+          </div>
+        </section>
+
+        <!-- Sub-sección: Visualización adicional (Memoria, Gantt, etc.) -->
+        <section class="w-full max-w-2xl flex-1 min-h-0">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Monitor del Sistema
+            </h2>
+          </div>
+
+          <!-- TODO: Insertar aquí componentes como <GanttChart />, <MemoryViewer />, etc. -->
+          <div
+            class="w-full h-48 rounded-xl border border-dashed border-slate-700
+                   bg-slate-900/50 flex items-center justify-center
+                   text-slate-600 text-sm italic select-none"
+          >
+            Componente React: Monitor / Gráficas
+          </div>
+        </section>
+      </main>
+
+      <!-- ─────────────────────────────────────────────────────────────
+           COLUMNA DERECHA (col-span-3)
+           Contiene: Cola de Bloqueados (E/S) + Procesos Terminados
+           ───────────────────────────────────────────────────────────── -->
+      <aside
+        class="col-span-3 bg-slate-900 border-l border-slate-700/60
+               flex flex-col overflow-hidden"
+      >
+        <!-- Sección: Cola de Bloqueados (E/S) -->
+        <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
+          <div class="flex items-center gap-2 mb-3 shrink-0">
+            <div class="w-2 h-2 rounded-full bg-red-500 shadow-sm shadow-red-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Cola de Bloqueados (E/S)
+            </h2>
+            <span
+              class="ml-auto text-xs font-mono font-medium text-red-300
+                     bg-red-500/15 px-2 py-0.5 rounded-full border border-red-500/30"
+            >
+              0
+            </span>
+          </div>
+
+          <!-- TODO: Insertar aquí el componente React <ColaBloqueados client:load /> -->
+          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
+            <div
+              class="flex items-center justify-center h-full
+                     text-slate-600 text-sm italic select-none"
+            >
+              Componente React: ColaBloqueados
+            </div>
+          </div>
+        </section>
+
+        <!-- Sección: Procesos Terminados -->
+        <section class="flex-1 flex flex-col overflow-hidden p-4">
+          <div class="flex items-center gap-2 mb-3 shrink-0">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Procesos Terminados
+            </h2>
+            <span
+              class="ml-auto text-xs font-mono font-medium text-emerald-300
+                     bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30"
+            >
+              0
+            </span>
+          </div>
+
+          <!-- TODO: Insertar aquí el componente React <ProcesosTerminados client:load /> -->
+          <div class="flex-1 overflow-y-auto min-h-0 space-y-2">
+            <div
+              class="flex items-center justify-center h-full
+                     text-slate-600 text-sm italic select-none"
+            >
+              Componente React: ProcesosTerminados
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </body>
 </html>
