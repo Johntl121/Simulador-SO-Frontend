@@ -14,9 +14,6 @@
 import { CpuViewer } from "../components/CpuViewer";
 import { ColaProcesos } from "../components/ColaProcesos";
 import { ControlesSimulacion } from "../components/ControlesSimulacion";
-import { useSimuladorStore } from "../store/useSimuladorStore";
-
-const { colas } = useSimuladorStore.getState();
 
 // ── Import de estilos globales ──
 import "../styles/global.css";
@@ -117,12 +114,12 @@ import "../styles/global.css";
       >
         <!-- Sección: Procesos Nuevos -->
         <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
-          <ColaProcesos client:load titulo="Procesos Nuevos" procesos={colas.nuevos} />
+          <ColaProcesos client:load titulo="Procesos Nuevos" tipoCola="nuevos" />
         </section>
 
         <!-- Sección: Cola de Listos -->
         <section class="flex-1 flex flex-col overflow-hidden p-4">
-          <ColaProcesos client:load titulo="Cola de Listos" procesos={colas.listos} />
+          <ColaProcesos client:load titulo="Cola de Listos" tipoCola="listos" />
         </section>
       </aside>
 
@@ -185,12 +182,12 @@ import "../styles/global.css";
       >
         <!-- Sección: Cola de Bloqueados (E/S) -->
         <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
-          <ColaProcesos client:load titulo="Cola de Bloqueados (E/S)" procesos={colas.bloqueadosES} />
+          <ColaProcesos client:load titulo="Cola de Bloqueados (E/S)" tipoCola="bloqueadosES" />
         </section>
 
         <!-- Sección: Procesos Terminados -->
         <section class="flex-1 flex flex-col overflow-hidden p-4">
-          <ColaProcesos client:load titulo="Procesos Terminados" procesos={colas.terminados} />
+          <ColaProcesos client:load titulo="Procesos Terminados" tipoCola="terminados" />
         </section>
       </aside>
     </div>

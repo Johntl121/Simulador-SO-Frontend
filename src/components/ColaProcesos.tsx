@@ -1,12 +1,12 @@
 import React from "react";
-import type { Proceso } from "../types/simulador";
+import { useSimuladorStore } from "../store/useSimuladorStore";
 
 // ── Props del componente ──────────────────────────────────────────────
 interface ColaProcesosProps {
   /** Título descriptivo de la cola (ej. "Cola de Listos") */
   titulo: string;
-  /** Arreglo de procesos a renderizar en la lista */
-  procesos: Proceso[];
+  /** El identificador de la cola en el store */
+  tipoCola: "nuevos" | "listos" | "bloqueadosES" | "terminados";
 }
 
 // ── Mapa de colores por estado ────────────────────────────────────────
@@ -24,8 +24,9 @@ const COLORES_ESTADO: Record<string, { bg: string; text: string }> = {
 // ── Componente ColaProcesos ───────────────────────────────────────────
 export const ColaProcesos: React.FC<ColaProcesosProps> = ({
   titulo,
-  procesos,
+  tipoCola,
 }) => {
+  const procesos = useSimuladorStore(state => state.colas[tipoCola]);
   return (
     <div className="flex flex-col h-full">
       {/* Encabezado de la cola */}
