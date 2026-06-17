@@ -1,7 +1,9 @@
 import React from "react";
 import { useSimuladorStore } from "../store/useSimuladorStore";
+import { useRelojGlobal } from "../hooks/useRelojGlobal";
 
 export const ControlesSimulacion: React.FC = () => {
+  useRelojGlobal(); // <== AQUÍ ESTABA EL BUG SILENCIOSO (nunca se invocó)
   const { simulacion, setEstadoSimulacion, setVelocidad } = useSimuladorStore();
 
   const isEjecutando = simulacion.estado === "EJECUTANDO";
