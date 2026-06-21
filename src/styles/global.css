@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* Animación de barra de progreso para el cambio de contexto del Dispatcher */
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
