@@ -17,6 +17,7 @@ export interface EstadoGlobalSO {
   };
   procesador: {
     cpuActiva: Proceso | null;
+    estadoDispatcher: "IDLE" | "CAMBIANDO_CONTEXTO";
   };
   colas: {
     nuevos: Proceso[];
