@@ -4,10 +4,10 @@ import { useRelojGlobal } from "../hooks/useRelojGlobal";
 
 export const ControlesSimulacion: React.FC = () => {
   useRelojGlobal(); // <== AQUÍ ESTABA EL BUG SILENCIOSO (nunca se invocó)
-  const { simulacion, setEstadoSimulacion, setVelocidad } = useSimuladorStore();
+  const { estadoSimulacionLocal, velocidadMultiplicador, setEstadoSimulacion, setVelocidad } = useSimuladorStore();
 
-  const isEjecutando = simulacion.estado === "EJECUTANDO";
-  const isPausado = simulacion.estado === "PAUSADO";
+  const isEjecutando = estadoSimulacionLocal === "EJECUTANDO";
+  const isPausado = estadoSimulacionLocal === "PAUSADO";
 
   return (
     <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg w-full flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -63,7 +63,7 @@ export const ControlesSimulacion: React.FC = () => {
         </span>
         <div className="inline-flex rounded-lg shadow-sm" role="group">
           {[1, 2, 5].map((velocidad, index, array) => {
-            const isActive = simulacion.velocidadMultiplicador === velocidad;
+            const isActive = velocidadMultiplicador === velocidad;
             // Estilos para los bordes del grupo de botones
             const isFirst = index === 0;
             const isLast = index === array.length - 1;

@@ -174,20 +174,15 @@ import "../styles/global.css";
 
       <!-- ─────────────────────────────────────────────────────────────
            COLUMNA DERECHA (col-span-3)
-           Contiene: Cola de Bloqueados (E/S) + Procesos Terminados
+           Contiene: Cola de Bloqueados (E/S)
            ───────────────────────────────────────────────────────────── -->
       <aside
         class="col-span-3 bg-slate-900 border-l border-slate-700/60
                flex flex-col overflow-hidden"
       >
         <!-- Sección: Cola de Bloqueados (E/S) -->
-        <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
-          <ColaProcesos client:load titulo="Cola de Bloqueados (E/S)" tipoCola="bloqueadosES" />
-        </section>
-
-        <!-- Sección: Procesos Terminados -->
         <section class="flex-1 flex flex-col overflow-hidden p-4">
-          <ColaProcesos client:load titulo="Procesos Terminados" tipoCola="terminados" />
+          <ColaProcesos client:load titulo="Cola de Bloqueados (E/S)" tipoCola="bloqueados" />
         </section>
       </aside>
     </div>

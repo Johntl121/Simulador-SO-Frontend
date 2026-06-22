@@ -3,8 +3,12 @@ import { useSimuladorStore } from '../store/useSimuladorStore';
 
 export const CpuViewer = () => {
     // Conectamos el componente al store de Zustand
-    const { simulacion, procesador, avanzarReloj, simularCambioContexto } = useSimuladorStore();
-    const isCambiandoContexto = procesador.estadoDispatcher === "CAMBIANDO_CONTEXTO";
+    const { backendData, estadoDispatcher, avanzarReloj, simularCambioContexto } = useSimuladorStore();
+    const isCambiandoContexto = estadoDispatcher === "CAMBIANDO_CONTEXTO";
+
+    const tickActual = backendData?.tickActual ?? 0;
+    const cpuActivaId = backendData?.estadoCPU.ejecutandoProcesoId;
+    const programCounter = backendData?.estadoCPU.programCounter;
 
     return (
         <div className="p-6 bg-slate-800 text-white rounded-xl shadow-lg border border-slate-700 max-w-sm">
@@ -12,7 +16,7 @@ export const CpuViewer = () => {
 
             <div className="mb-4">
                 <p className="text-sm text-slate-400">Reloj Global</p>
-                <p className="text-3xl font-mono text-green-400">Tick: {simulacion.relojGlobal}</p>
+                <p className="text-3xl font-mono text-green-400">Tick: {tickActual}</p>
             </div>
 
             <div className="bg-slate-900 p-4 rounded border border-slate-600 relative overflow-hidden">
@@ -58,14 +62,13 @@ export const CpuViewer = () => {
                             />
                         </div>
                     </div>
-                ) : procesador.cpuActiva ? (
+                ) : cpuActivaId ? (
                     <>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="font-bold text-lg text-yellow-400">{procesador.cpuActiva.idProceso}</span>
-                            <span className="bg-blue-600 px-2 py-1 rounded text-xs font-bold">{procesador.cpuActiva.estado}</span>
+                            <span className="font-bold text-lg text-yellow-400">{cpuActivaId}</span>
+                            <span className="bg-blue-600 px-2 py-1 rounded text-xs font-bold">EJECUTANDO</span>
                         </div>
-                        <p className="font-mono text-sm">PC: {procesador.cpuActiva.programCounter}</p>
-                        <p className="font-mono text-sm">Burst Restante: {procesador.cpuActiva.burstTimeRestante}</p>
+                        <p className="font-mono text-sm">PC: {programCounter}</p>
                     </>
                 ) : (
                     <p className="text-slate-500 italic">CPU Inactiva (IDLE)</p>
