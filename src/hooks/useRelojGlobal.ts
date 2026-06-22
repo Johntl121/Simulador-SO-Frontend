@@ -3,14 +3,16 @@ import { useSimuladorStore } from '../store/useSimuladorStore';
 
 export const useRelojGlobal = () => {
   // Extraemos estado, velocidadMultiplicador y la función para avanzar el reloj
-  const estado = useSimuladorStore(state => state.simulacion.estado);
-  const velocidadMultiplicador = useSimuladorStore(state => state.simulacion.velocidadMultiplicador);
+  const estado = useSimuladorStore(state => state.estadoSimulacionLocal);
+  const velocidadMultiplicador = useSimuladorStore(state => state.velocidadMultiplicador);
+  const estadoConexionWS = useSimuladorStore(state => state.estadoConexionWS);
   const avanzarReloj = useSimuladorStore(state => state.avanzarReloj);
 
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval>;
 
-    if (estado === "EJECUTANDO") {
+    // Si está conectado al WS, el reloj lo dicta el backend, no simulamos localmente.
+    if (estado === "EJECUTANDO" && estadoConexionWS !== "CONECTADO") {
       // El tick base es de 1000ms (1 segundo). Calculamos el intervalo actual.
       // Ej: velocidad 1 -> 1000ms, velocidad 2 -> 500ms, velocidad 5 -> 200ms.
       const intervalo = 1000 / velocidadMultiplicador;
@@ -28,5 +30,5 @@ export const useRelojGlobal = () => {
         clearInterval(intervalId);
       }
     };
-  }, [estado, velocidadMultiplicador, avanzarReloj]); // Dependencias del hook
+  }, [estado, velocidadMultiplicador, estadoConexionWS, avanzarReloj]); // Dependencias del hook
 };

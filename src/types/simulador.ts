@@ -1,28 +1,77 @@
-export type EstadoProceso = "NUEVO" | "LISTO" | "EJECUTANDO" | "BLOQUEADO" | "TERMINADO";
+export type EstadoConexionWS = "DESCONECTADO" | "CONECTANDO" | "CONECTADO" | "ERROR";
 
-export interface Proceso {
+export interface Configuracion {
+  algoritmoPlanificacion: string;
+  quantum: number;
+  tamanoPaginaBytes: number;
+}
+
+export interface EstadoCPU {
+  ejecutandoProcesoId: string | null;
+  programCounter: number;
+  limite32Bits: string;
+}
+
+export interface ColasProcesos {
+  nuevos: string[];
+  listos: string[];
+  bloqueados: string[];
+}
+
+export interface MarcoRAM {
+  idMarco: number;
+  idProcesoAsignado: string | null;
+  numeroPaginaAsignada: number;
+}
+
+export interface PaginaSwap {
   idProceso: string;
-  estado: EstadoProceso;
-  burstTimeTotal: number;
-  burstTimeRestante?: number;
-  programCounter?: number;
+  numeroPagina: number;
+}
+
+export interface AreaSwap {
+  totalPaginasEnDisco: number;
+  paginas: PaginaSwap[];
+}
+
+export interface GestionMemoria {
+  algoritmoReemplazo: string;
+  totalAccesos: number;
+  pageFaultsTotales: number;
+  porcentajeThrashing: number;
+  marcosRAM: MarcoRAM[];
+  areaSwap: AreaSwap;
+}
+
+export interface DispositivoES {
+  nombre: string;
+  procesoActualId: string | null;
+  tiempoRestanteTick: number;
+  colaEspera: string[];
+}
+
+export interface Sistema {
+  toleranciaFallosExcedida: boolean;
+  logs: string[];
+}
+
+export interface PayloadBackend {
+  tickActual: number;
+  configuracion: Configuracion;
+  estadoCPU: EstadoCPU;
+  colasProcesos: ColasProcesos;
+  gestionMemoria: GestionMemoria;
+  dispositivosES: DispositivoES[];
+  sistema: Sistema;
 }
 
 export interface EstadoGlobalSO {
-  simulacion: {
-    relojGlobal: number;
-    estado: "PAUSADO" | "EJECUTANDO" | "TERMINADO";
-    metricaThrashing: number;
-    velocidadMultiplicador: number;
-  };
-  procesador: {
-    cpuActiva: Proceso | null;
-    estadoDispatcher: "IDLE" | "CAMBIANDO_CONTEXTO";
-  };
-  colas: {
-    nuevos: Proceso[];
-    listos: Proceso[];
-    bloqueadosES: Proceso[];
-    terminados: Proceso[];
-  };
+  // Estado local del UI y conexión
+  estadoConexionWS: EstadoConexionWS;
+  estadoSimulacionLocal: "PAUSADO" | "EJECUTANDO" | "TERMINADO";
+  velocidadMultiplicador: number;
+  estadoDispatcher: "IDLE" | "CAMBIANDO_CONTEXTO";
+
+  // Estado sincronizado desde el Backend
+  backendData: PayloadBackend | null;
 }

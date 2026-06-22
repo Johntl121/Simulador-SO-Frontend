@@ -1,190 +1,204 @@
 import { create } from 'zustand';
-import type { EstadoGlobalSO, Proceso } from '../types/simulador';
+import type { EstadoGlobalSO, PayloadBackend } from '../types/simulador';
 
-// Extendemos el estado global con memoria y swap
-interface SimuladorState extends EstadoGlobalSO {
-	// Nuevas propiedades
-	memoria: {
-		marcos: Array<{ idFrame: number; idProceso?: string; estado: 'libre' | 'ocupado' | 'swap' }>;
-		tamaño: number;
-	};
-	swap: {
-		bloques: Array<{ idBloque: number; idProceso?: string; estado: 'libre' | 'ocupado' }>;
-		tamaño: number;
-	};
-	// Acciones existentes
-	avanzarReloj: () => void;
-	setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => void;
-	setVelocidad: (multiplicador: number) => void;
-	simularCambioContexto: (idProcesoEntrante: string) => void;
-	limpiarTimeoutContexto: () => void;
-	// Nueva acción
-	cargarEstadoMemoria: (datos: { marcos: any[]; swap: any[] }) => void;
+interface SimuladorStore extends EstadoGlobalSO {
+    // Memoria y Swap de la rama dev
+    memoria: {
+        marcos: Array<{ idFrame: number; idProceso?: string; estado: 'libre' | 'ocupado' | 'swap' }>;
+        tamaño: number;
+    };
+    swap: {
+        bloques: Array<{ idBloque: number; idProceso?: string; estado: 'libre' | 'ocupado' }>;
+        tamaño: number;
+    };
+
+    // Acciones generales
+    avanzarReloj: () => void;
+    setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => void;
+    setVelocidad: (multiplicador: number) => void;
+    simularCambioContexto: (idProcesoEntrante: string) => void;
+    limpiarTimeoutContexto: () => void;
+    
+    // Acción de memoria
+    cargarEstadoMemoria: (datos: { marcos: any[]; swap: any[] }) => void;
+
+    // WebSockets
+    conectarWebSocket: (url: string) => void;
+    desconectarWebSocket: () => void;
 }
 
-// Variable para el timeout del context switch (usando tipo compatible con navegador)
+// Variable externa para mantener la instancia de WebSocket sin problemas de reactividad
+let wsInstance: WebSocket | null = null;
+
+// Variable para el timeout del context switch
 let timeoutContexto: ReturnType<typeof setTimeout> | null = null;
 
-export const useSimuladorStore = create<SimuladorState>((set, get) => ({
-	// --- Estado Inicial Mockeado (Datos falsos para probar) ---
-	simulacion: {
-		relojGlobal: 0,
-		estado: "PAUSADO",
-		metricaThrashing: 0,
-		velocidadMultiplicador: 1,
-	},
-	procesador: {
-		cpuActiva: { idProceso: "P1", estado: "EJECUTANDO", burstTimeTotal: 10, burstTimeRestante: 5, programCounter: 1024 },
-		estadoDispatcher: "IDLE",
-	},
-	colas: {
-		nuevos: [
-			{ idProceso: "P5", estado: "NUEVO", burstTimeTotal: 8 },
-			{ idProceso: "P6", estado: "NUEVO", burstTimeTotal: 15 },
-		],
-		listos: [
-			{ idProceso: "P2", estado: "LISTO", burstTimeTotal: 5 },
-			{ idProceso: "P3", estado: "LISTO", burstTimeTotal: 12 },
-			{ idProceso: "P4", estado: "LISTO", burstTimeTotal: 3 },
-		],
-		bloqueadosES: [
-			{ idProceso: "P7", estado: "BLOQUEADO", burstTimeTotal: 20 },
-		],
-		terminados: [
-			{ idProceso: "P0", estado: "TERMINADO", burstTimeTotal: 6 },
-		],
-	},
+const initialBackendData: PayloadBackend = {
+    tickActual: 0,
+    configuracion: {
+        algoritmoPlanificacion: "RR",
+        quantum: 4,
+        tamanoPaginaBytes: 4096
+    },
+    estadoCPU: {
+        ejecutandoProcesoId: null,
+        programCounter: 0,
+        limite32Bits: "0x00000000"
+    },
+    colasProcesos: {
+        nuevos: [],
+        listos: [],
+        bloqueados: []
+    },
+    gestionMemoria: {
+        algoritmoReemplazo: "FIFO",
+        totalAccesos: 0,
+        pageFaultsTotales: 0,
+        porcentajeThrashing: 0,
+        marcosRAM: [],
+        areaSwap: { totalPaginasEnDisco: 0, paginas: [] }
+    },
+    dispositivosES: [],
+    sistema: {
+        toleranciaFallosExcedida: false,
+        logs: []
+    }
+};
 
-	// --- Nuevo estado de memoria y swap ---
-	memoria: {
-		marcos: Array.from({ length: 64 }, (_, i) => ({
-			idFrame: i,
-			estado: 'libre' as const,
-		})),
-		tamaño: 64,
-	},
-	swap: {
-		bloques: Array.from({ length: 16 }, (_, i) => ({
-			idBloque: i,
-			estado: 'libre' as const,
-		})),
-		tamaño: 16,
-	},
+export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
+    // Estado local (combinado de HEAD y la necesidad visual de memoria en dev)
+    estadoConexionWS: "DESCONECTADO",
+    estadoSimulacionLocal: "PAUSADO",
+    velocidadMultiplicador: 1,
+    estadoDispatcher: "IDLE",
 
-	// --- Acciones existentes (con comentarios originales) ---
+    // Estado de memoria de dev
+    memoria: {
+        marcos: Array.from({ length: 64 }, (_, i) => ({
+            idFrame: i,
+            estado: 'libre' as const,
+        })),
+        tamaño: 64,
+    },
+    swap: {
+        bloques: Array.from({ length: 16 }, (_, i) => ({
+            idBloque: i,
+            estado: 'libre' as const,
+        })),
+        tamaño: 16,
+    },
 
-	// Acción de prueba para ver si React actualiza
-	avanzarReloj: () => set((state) => ({
-		simulacion: { ...state.simulacion, relojGlobal: state.simulacion.relojGlobal + 1 }
-	})),
+    // Estado del backend de HEAD
+    backendData: initialBackendData,
 
-	setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => set((state) => ({
-		simulacion: { ...state.simulacion, estado }
-	})),
+    avanzarReloj: () => set((state) => {
+        if (!state.backendData) return state;
+        return {
+            backendData: {
+                ...state.backendData,
+                tickActual: state.backendData.tickActual + 1
+            }
+        };
+    }),
 
-	setVelocidad: (multiplicador: number) => set((state) => ({
-		simulacion: { ...state.simulacion, velocidadMultiplicador: multiplicador }
-	})),
+    setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => set({ estadoSimulacionLocal: estado }),
 
-	limpiarTimeoutContexto: () => {
-		if (timeoutContexto) {
-			clearTimeout(timeoutContexto);
-			timeoutContexto = null;
-		}
-	},
+    setVelocidad: (multiplicador: number) => set({ velocidadMultiplicador: multiplicador }),
 
-	// Fase 3: Simulación de cambio de contexto del Dispatcher (corregido)
-	simularCambioContexto: (idProcesoEntrante: string) => {
-		// Limpiar cualquier timeout pendiente
-		get().limpiarTimeoutContexto();
+    limpiarTimeoutContexto: () => {
+        if (timeoutContexto) {
+            clearTimeout(timeoutContexto);
+            timeoutContexto = null;
+        }
+    },
 
-		// 1. Cambiar estado del Dispatcher a "CAMBIANDO_CONTEXTO"
-		set((state) => ({
-			procesador: { ...state.procesador, estadoDispatcher: "CAMBIANDO_CONTEXTO" }
-		}));
+    simularCambioContexto: (idProcesoEntrante: string) => {
+        // Limpiar cualquier timeout pendiente de dev
+        get().limpiarTimeoutContexto();
 
-		// 2. Después de 1 segundo, completar el cambio de contexto
-		timeoutContexto = setTimeout(() => {
-			// Limpiar la referencia
-			timeoutContexto = null;
+        set({ estadoDispatcher: "CAMBIANDO_CONTEXTO" });
 
-			set((state) => {
-				// Obtener el proceso actual en CPU (si existe)
-				const procesoActual = state.procesador.cpuActiva;
+        timeoutContexto = setTimeout(() => {
+            timeoutContexto = null;
+            set((state) => {
+                if (!state.backendData) return { estadoDispatcher: "IDLE" };
+                return {
+                    estadoDispatcher: "IDLE",
+                    backendData: {
+                        ...state.backendData,
+                        estadoCPU: {
+                            ...state.backendData.estadoCPU,
+                            ejecutandoProcesoId: idProcesoEntrante
+                        },
+                        colasProcesos: {
+                            ...state.backendData.colasProcesos,
+                            listos: state.backendData.colasProcesos.listos.filter(id => id !== idProcesoEntrante)
+                        }
+                    }
+                };
+            });
+        }, 1000);
+    },
 
-				// Buscar el proceso entrante en la cola de listos
-				const procesoEntrante = state.colas.listos.find(
-					(p) => p.idProceso === idProcesoEntrante
-				);
+    cargarEstadoMemoria: (datos) => set((state) => ({
+        memoria: {
+            ...state.memoria,
+            marcos: datos.marcos.map((m: any, idx: number) => ({
+                idFrame: idx,
+                idProceso: m.proceso || undefined,
+                estado: m.estado || 'libre',
+            })),
+        },
+        swap: {
+            ...state.swap,
+            bloques: (datos.swap || []).map((s: any, idx: number) => ({
+                idBloque: idx,
+                idProceso: s.proceso || undefined,
+                estado: s.estado || 'libre',
+            })),
+        },
+    })),
 
-				// Si no se encuentra, volver a IDLE y mover el actual a listos (si existe)
-				if (!procesoEntrante) {
-					let nuevasListos = [...state.colas.listos];
-					if (procesoActual) {
-						nuevasListos.push({
-							...procesoActual,
-							estado: "LISTO",
-						});
-					}
-					return {
-						procesador: {
-							cpuActiva: null,
-							estadoDispatcher: "IDLE",
-						},
-						colas: {
-							...state.colas,
-							listos: nuevasListos,
-						},
-					};
-				}
+    // --- WebSockets de HEAD ---
+    conectarWebSocket: (url: string) => {
+        set({ estadoConexionWS: "CONECTANDO" });
 
-				// Construir nueva cola de listos: sacar el entrante y añadir el actual
-				let nuevasListos = state.colas.listos.filter(
-					(p) => p.idProceso !== idProcesoEntrante
-				);
-				if (procesoActual) {
-					nuevasListos.push({
-						...procesoActual,
-						estado: "LISTO",
-					});
-				}
+        if (wsInstance) {
+            wsInstance.close();
+        }
 
-				return {
-					procesador: {
-						cpuActiva: {
-							...procesoEntrante,
-							estado: "EJECUTANDO",
-							burstTimeRestante: procesoEntrante.burstTimeRestante ?? procesoEntrante.burstTimeTotal,
-							programCounter: procesoEntrante.programCounter ?? 0,
-						},
-						estadoDispatcher: "IDLE",
-					},
-					colas: {
-						...state.colas,
-						listos: nuevasListos,
-					},
-				};
-			});
-		}, 1000);
-	},
+        wsInstance = new WebSocket(url);
 
-	// --- Nueva acción para cargar datos de memoria ---
-	cargarEstadoMemoria: (datos) => set((state) => ({
-		memoria: {
-			...state.memoria,
-			marcos: datos.marcos.map((m: any, idx: number) => ({
-				idFrame: idx,
-				idProceso: m.proceso || undefined,
-				estado: m.estado || 'libre',
-			})),
-		},
-		swap: {
-			...state.swap,
-			bloques: (datos.swap || []).map((s: any, idx: number) => ({
-				idBloque: idx,
-				idProceso: s.proceso || undefined,
-				estado: s.estado || 'libre',
-			})),
-		},
-	})),
+        wsInstance.onopen = () => {
+            set({ estadoConexionWS: "CONECTADO" });
+        };
+
+        wsInstance.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            set({ estadoConexionWS: "ERROR" });
+        };
+
+        wsInstance.onclose = () => {
+            set({ estadoConexionWS: "DESCONECTADO" });
+            wsInstance = null;
+        };
+
+        wsInstance.onmessage = (event) => {
+            try {
+                const payload = JSON.parse(event.data) as PayloadBackend;
+                // Sobreescribir masivamente el estado con el payload del backend
+                set({ backendData: payload });
+            } catch (error) {
+                console.error("Error al parsear el mensaje del WebSocket", error);
+            }
+        };
+    },
+
+    desconectarWebSocket: () => {
+        if (wsInstance) {
+            wsInstance.close();
+            wsInstance = null;
+        }
+        set({ estadoConexionWS: "DESCONECTADO" });
+    }
 }));
