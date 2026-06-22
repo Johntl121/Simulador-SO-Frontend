@@ -14,8 +14,9 @@ export const ColaProcesos: React.FC<ColaProcesosProps> = ({
   titulo,
   tipoCola,
 }) => {
-  // Obtenemos los IDs de procesos del backendData
+  // Obtenemos los IDs de procesos y el diccionario del backendData
   const procesosIds = useSimuladorStore(state => state.backendData?.colasProcesos[tipoCola] || []);
+  const diccionarioProcesos = useSimuladorStore(state => state.backendData?.diccionarioProcesos || {});
 
   return (
     <div className="flex flex-col h-full">
@@ -40,21 +41,46 @@ export const ColaProcesos: React.FC<ColaProcesosProps> = ({
             No hay procesos en esta cola
           </p>
         ) : (
-          /* ── Tarjetas de procesos (Minimalistas) ── */
-          procesosIds.map((procesoId) => (
-            <div
-              key={procesoId}
-              className="flex items-center justify-center gap-3
-                         bg-slate-800 hover:bg-slate-800/80
-                         border border-slate-700/50 rounded-lg
-                         px-3 py-3 transition-colors"
-            >
-              {/* ID del proceso centrado */}
-              <span className="font-mono font-bold text-sm text-slate-100 truncate">
-                {procesoId}
-              </span>
-            </div>
-          ))
+          /* ── Tarjetas de procesos (Completas) ── */
+          procesosIds.map((procesoId) => {
+            const proceso = diccionarioProcesos[procesoId];
+            if (!proceso) return null; // Fallback de seguridad
+
+            // Determinar color de badge según el estado
+            let badgeColor = "bg-slate-600 text-slate-200 border border-slate-500/30";
+            if (proceso.estado === "LISTO") badgeColor = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            else if (proceso.estado === "NUEVO") badgeColor = "bg-slate-500/20 text-slate-400 border border-slate-500/30";
+            else if (proceso.estado === "BLOQUEADO") badgeColor = "bg-rose-500/20 text-rose-400 border border-rose-500/30";
+            else if (proceso.estado === "EJECUTANDO") badgeColor = "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+
+            return (
+              <div
+                key={procesoId}
+                className="flex flex-col gap-2
+                           bg-slate-800 hover:bg-slate-800/80
+                           border border-slate-700/80 shadow-md rounded-lg
+                           p-3 transition-colors"
+              >
+                {/* Cabecera: ID y Badge de estado */}
+                <div className="flex items-center justify-between">
+                  <span className="font-mono font-bold text-sm text-slate-100 truncate">
+                    {proceso.id}
+                  </span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${badgeColor}`}>
+                    {proceso.estado}
+                  </span>
+                </div>
+                
+                {/* Detalles adicionales */}
+                <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
+                  <span>Burst Time:</span>
+                  <span className="font-mono font-medium text-slate-300">
+                    {proceso.burstTimeRestante}t
+                  </span>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>
