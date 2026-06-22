@@ -2,16 +2,36 @@ import { create } from 'zustand';
 import type { EstadoGlobalSO, PayloadBackend } from '../types/simulador';
 
 interface SimuladorStore extends EstadoGlobalSO {
+    // Memoria y Swap de la rama dev
+    memoria: {
+        marcos: Array<{ idFrame: number; idProceso?: string; estado: 'libre' | 'ocupado' | 'swap' }>;
+        tamaño: number;
+    };
+    swap: {
+        bloques: Array<{ idBloque: number; idProceso?: string; estado: 'libre' | 'ocupado' }>;
+        tamaño: number;
+    };
+
+    // Acciones generales
     avanzarReloj: () => void;
     setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => void;
     setVelocidad: (multiplicador: number) => void;
     simularCambioContexto: (idProcesoEntrante: string) => void;
+    limpiarTimeoutContexto: () => void;
+    
+    // Acción de memoria
+    cargarEstadoMemoria: (datos: { marcos: any[]; swap: any[] }) => void;
+
+    // WebSockets
     conectarWebSocket: (url: string) => void;
     desconectarWebSocket: () => void;
 }
 
 // Variable externa para mantener la instancia de WebSocket sin problemas de reactividad
 let wsInstance: WebSocket | null = null;
+
+// Variable para el timeout del context switch
+let timeoutContexto: ReturnType<typeof setTimeout> | null = null;
 
 const initialBackendData: PayloadBackend = {
     tickActual: 0,
@@ -45,14 +65,30 @@ const initialBackendData: PayloadBackend = {
     }
 };
 
-export const useSimuladorStore = create<SimuladorStore>((set) => ({
-    // Estado local
+export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
+    // Estado local (combinado de HEAD y la necesidad visual de memoria en dev)
     estadoConexionWS: "DESCONECTADO",
     estadoSimulacionLocal: "PAUSADO",
     velocidadMultiplicador: 1,
     estadoDispatcher: "IDLE",
 
-    // Estado del backend
+    // Estado de memoria de dev
+    memoria: {
+        marcos: Array.from({ length: 64 }, (_, i) => ({
+            idFrame: i,
+            estado: 'libre' as const,
+        })),
+        tamaño: 64,
+    },
+    swap: {
+        bloques: Array.from({ length: 16 }, (_, i) => ({
+            idBloque: i,
+            estado: 'libre' as const,
+        })),
+        tamaño: 16,
+    },
+
+    // Estado del backend de HEAD
     backendData: initialBackendData,
 
     avanzarReloj: () => set((state) => {
@@ -69,9 +105,21 @@ export const useSimuladorStore = create<SimuladorStore>((set) => ({
 
     setVelocidad: (multiplicador: number) => set({ velocidadMultiplicador: multiplicador }),
 
+    limpiarTimeoutContexto: () => {
+        if (timeoutContexto) {
+            clearTimeout(timeoutContexto);
+            timeoutContexto = null;
+        }
+    },
+
     simularCambioContexto: (idProcesoEntrante: string) => {
+        // Limpiar cualquier timeout pendiente de dev
+        get().limpiarTimeoutContexto();
+
         set({ estadoDispatcher: "CAMBIANDO_CONTEXTO" });
-        setTimeout(() => {
+
+        timeoutContexto = setTimeout(() => {
+            timeoutContexto = null;
             set((state) => {
                 if (!state.backendData) return { estadoDispatcher: "IDLE" };
                 return {
@@ -92,7 +140,26 @@ export const useSimuladorStore = create<SimuladorStore>((set) => ({
         }, 1000);
     },
 
-    // --- WebSockets ---
+    cargarEstadoMemoria: (datos) => set((state) => ({
+        memoria: {
+            ...state.memoria,
+            marcos: datos.marcos.map((m: any, idx: number) => ({
+                idFrame: idx,
+                idProceso: m.proceso || undefined,
+                estado: m.estado || 'libre',
+            })),
+        },
+        swap: {
+            ...state.swap,
+            bloques: (datos.swap || []).map((s: any, idx: number) => ({
+                idBloque: idx,
+                idProceso: s.proceso || undefined,
+                estado: s.estado || 'libre',
+            })),
+        },
+    })),
+
+    // --- WebSockets de HEAD ---
     conectarWebSocket: (url: string) => {
         set({ estadoConexionWS: "CONECTANDO" });
 
