@@ -25,6 +25,8 @@ interface SimuladorStore extends EstadoGlobalSO {
     // WebSockets
     conectarWebSocket: (url: string) => void;
     desconectarWebSocket: () => void;
+    enviarTickWS: () => void;
+    enviarComandoWS: (payload: Record<string, unknown>) => void;
 }
 
 // Variable externa para mantener la instancia de WebSocket sin problemas de reactividad
@@ -50,6 +52,7 @@ const initialBackendData: PayloadBackend = {
         listos: [],
         bloqueados: []
     },
+    diccionarioProcesos: {},
     gestionMemoria: {
         algoritmoReemplazo: "FIFO",
         totalAccesos: 0,
@@ -200,5 +203,17 @@ export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
             wsInstance = null;
         }
         set({ estadoConexionWS: "DESCONECTADO" });
+    },
+
+    enviarTickWS: () => {
+        if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+            wsInstance.send(JSON.stringify({ action: "tick" }));
+        }
+    },
+
+    enviarComandoWS: (payload: Record<string, unknown>) => {
+        if (wsInstance && wsInstance.readyState === WebSocket.OPEN) {
+            wsInstance.send(JSON.stringify(payload));
+        }
     }
 }));

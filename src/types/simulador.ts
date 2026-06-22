@@ -55,11 +55,18 @@ export interface Sistema {
   logs: string[];
 }
 
+export interface ProcesoDetalle {
+  id: string;
+  estado: string;
+  burstTimeRestante: number;
+}
+
 export interface PayloadBackend {
   tickActual: number;
   configuracion: Configuracion;
   estadoCPU: EstadoCPU;
   colasProcesos: ColasProcesos;
+  diccionarioProcesos: Record<string, ProcesoDetalle>;
   gestionMemoria: GestionMemoria;
   dispositivosES: DispositivoES[];
   sistema: Sistema;
