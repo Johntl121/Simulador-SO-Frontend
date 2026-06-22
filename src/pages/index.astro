@@ -14,6 +14,9 @@
 import { CpuViewer } from "../components/CpuViewer";
 import { ColaProcesos } from "../components/ColaProcesos";
 import { ControlesSimulacion } from "../components/ControlesSimulacion";
+// Nuevos imports para memoria y swap
+import { MemoryHeatmap } from "../components/MemoryHeatmap";
+import { SwapArea } from "../components/SwapArea";
 
 // ── Import de estilos globales ──
 import "../styles/global.css";
@@ -161,13 +164,10 @@ import "../styles/global.css";
             </h2>
           </div>
 
-          <!-- TODO: Insertar aquí componentes como <GanttChart />, <MemoryViewer />, etc. -->
-          <div
-            class="w-full h-48 rounded-xl border border-dashed border-slate-700
-                   bg-slate-900/50 flex items-center justify-center
-                   text-slate-600 text-sm italic select-none"
-          >
-            Componente React: Monitor / Gráficas
+          <!-- Componentes de memoria y swap -->
+          <div class="space-y-6">
+            <MemoryHeatmap client:load />
+            <SwapArea client:load />
           </div>
         </section>
       </main>
