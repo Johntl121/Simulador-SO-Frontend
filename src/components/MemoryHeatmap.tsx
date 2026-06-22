@@ -1,119 +1,91 @@
-import React, { useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSimuladorStore } from '../store/useSimuladorStore';
 
+// Sub-componente para la animación de cada marco en el mapa
+const CuadroMarcoRAM: React.FC<{ index: number, marco: any, getEstadoMarco: (idx: number, m: any) => string }> = ({ index, marco, getEstadoMarco }) => {
+  const [highlight, setHighlight] = useState(false);
+
+  useEffect(() => {
+    // Animación cuando el marco recibe un proceso
+    if (marco.idProcesoAsignado) {
+      setHighlight(true);
+      const timer = setTimeout(() => setHighlight(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [marco.idProcesoAsignado, marco.numeroPaginaAsignada]);
+
+  const estado = getEstadoMarco(index, marco);
+  
+  let baseColor = 'bg-slate-700/30 border-slate-600/20';
+  if (estado === 'libre') baseColor = 'bg-emerald-600/70 border-emerald-500/30';
+  else if (estado === 'ocupado') baseColor = 'bg-rose-600/70 border-rose-500/30';
+  else if (estado === 'fragmentado') baseColor = 'bg-amber-500/70 border-amber-400/30';
+
+  const activeClasses = highlight
+    ? 'bg-yellow-500 border-yellow-400 scale-[1.15] z-10 shadow-[0_0_15px_rgba(234,179,8,0.6)] text-white font-bold animate-pulse'
+    : `${baseColor} text-white/50`;
+
+  const title = `Marco ${marco.idMarco}: ${estado}${marco.idProcesoAsignado ? ' (P: ' + marco.idProcesoAsignado + ')' : ''}`;
+
+  return (
+    <div
+      className={`aspect-square rounded border flex items-center justify-center text-[8px] transition-all duration-700 ease-out hover:scale-105 ${activeClasses}`}
+      title={title}
+    >
+      {marco.idProcesoAsignado?.slice(-2)}
+    </div>
+  );
+};
+
 export const MemoryHeatmap: React.FC = () => {
-  const { memoria, cargarEstadoMemoria } = useSimuladorStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { backendData } = useSimuladorStore();
+  const marcosRAM = backendData?.gestionMemoria?.marcosRAM || [];
+
+  // Asegurar que tenemos 64 marcos visuales
+  const marcos = marcosRAM.length >= 64
+    ? marcosRAM
+    : [
+        ...marcosRAM,
+        ...Array(64 - marcosRAM.length)
+          .fill(null)
+          .map((_, i) => ({
+            idMarco: marcosRAM.length + i,
+            idProcesoAsignado: null,
+            numeroPaginaAsignada: 0,
+          })),
+      ];
 
   const getEstadoMarco = (index: number, marco: any) => {
-    if (marco.estado === 'swap') return 'swap';
-    if (marco.estado === 'libre') {
-      const marcos = memoria.marcos;
+    if (marco.idProcesoAsignado === null) {
       const prev = index > 0 ? marcos[index - 1] : null;
       const next = index < marcos.length - 1 ? marcos[index + 1] : null;
-      const tieneVecinoOcupado = (prev && prev.estado === 'ocupado') || (next && next.estado === 'ocupado');
+      const tieneVecinoOcupado = (prev && prev.idProcesoAsignado !== null) || (next && next.idProcesoAsignado !== null);
       return tieneVecinoOcupado ? 'fragmentado' : 'libre';
     }
     return 'ocupado';
   };
 
-  const getColor = (index: number, marco: any) => {
-    const estado = getEstadoMarco(index, marco);
-    switch (estado) {
-      case 'libre': return 'bg-emerald-600/70 border-emerald-500/30';
-      case 'ocupado': return 'bg-rose-600/70 border-rose-500/30';
-      case 'fragmentado': return 'bg-amber-500/70 border-amber-400/30';
-      case 'swap': return 'bg-orange-600/70 border-orange-500/30';
-      default: return 'bg-slate-700/30 border-slate-600/20';
-    }
-  };
-
-  const getTooltip = (index: number, marco: any) => {
-    const estado = getEstadoMarco(index, marco);
-    const base = `Frame ${marco.idFrame}: ${estado}`;
-    if (marco.idProceso) return `${base} (P: ${marco.idProceso})`;
-    return base;
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const contenido = ev.target?.result as string;
-        let datos: any;
-        if (file.name.endsWith('.json')) {
-          datos = JSON.parse(contenido);
-        } else if (file.name.endsWith('.csv')) {
-          const lineas = contenido.split('\n').filter((l) => l.trim());
-          if (lineas.length < 2) throw new Error('CSV vacío');
-          const cabeceras = lineas[0].split(',').map((h) => h.trim());
-          const idxProceso = cabeceras.indexOf('proceso');
-          const idxEstado = cabeceras.indexOf('estado');
-          if (idxProceso === -1 || idxEstado === -1) {
-            throw new Error('CSV debe tener columnas "proceso" y "estado"');
-          }
-          const marcos = lineas.slice(1).map((linea) => {
-            const valores = linea.split(',').map((v) => v.trim());
-            return {
-              proceso: valores[idxProceso] || undefined,
-              estado: valores[idxEstado] || 'libre',
-            };
-          });
-          datos = { marcos, swap: [] };
-        } else {
-          alert('Formato no soportado. Use .json o .csv');
-          return;
-        }
-        if (!datos.marcos || !Array.isArray(datos.marcos)) {
-          throw new Error('El archivo debe contener un array "marcos"');
-        }
-        cargarEstadoMemoria({
-          marcos: datos.marcos,
-          swap: datos.swap || [],
-        });
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      } catch (error) {
-        alert('Error al leer el archivo: ' + (error as Error).message);
-      }
-    };
-    reader.readAsText(file);
-  };
-
   const columnas = 8;
-  const marcos = memoria.marcos;
 
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
-          Mapa de Memoria ({memoria.tamaño} marcos)
+          Mapa de Memoria (64 marcos)
         </h3>
-        <label className="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors">
-          Cargar CSV/JSON
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,.json"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-        </label>
+        <span className="text-[10px] text-emerald-400 font-bold border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 rounded">
+          En Vivo (WS)
+        </span>
       </div>
 
       <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columnas}, 1fr)` }}>
-        {marcos.map((marco, idx) => (
-          <div
-            key={marco.idFrame}
-            className={`aspect-square rounded border ${getColor(idx, marco)} 
-                        flex items-center justify-center text-[8px] text-white/50 
-                        hover:scale-105 transition-transform duration-100`}
-            title={getTooltip(idx, marco)}
-          >
-            {marco.idProceso?.slice(-2)}
-          </div>
+        {marcos.slice(0, 64).map((marco, idx) => (
+          <CuadroMarcoRAM 
+            key={marco.idMarco} 
+            index={idx} 
+            marco={marco} 
+            getEstadoMarco={getEstadoMarco} 
+          />
         ))}
       </div>
 
@@ -126,9 +98,6 @@ export const MemoryHeatmap: React.FC = () => {
         </span>
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded bg-amber-500/70 border border-amber-400/30"></span> Fragmentado
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-orange-600/70 border border-orange-500/30"></span> Swap
         </span>
       </div>
     </div>
