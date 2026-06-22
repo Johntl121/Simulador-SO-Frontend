@@ -1,24 +1,11 @@
 ---
-/**
- * index.astro — Dashboard principal del Simulador de Sistema Operativo
- *
- * Layout de pantalla completa (100vh) con CSS Grid de 12 columnas:
- *   - Columna izquierda  (col-span-3): Procesos Nuevos + Cola de Listos
- *   - Columna central     (col-span-6): CPU + Controles de Tiempo
- *   - Columna derecha     (col-span-3): Cola de Bloqueados + Terminados
- *
- * Los componentes React se insertarán donde se indican los comentarios.
- */
-
-// ── Imports de componentes React (agregar aquí conforme se creen) ──
 import { CpuViewer } from "../components/CpuViewer";
 import { ColaProcesos } from "../components/ColaProcesos";
 import { ControlesSimulacion } from "../components/ControlesSimulacion";
-// Nuevos imports para memoria y swap
 import { MemoryHeatmap } from "../components/MemoryHeatmap";
 import { SwapArea } from "../components/SwapArea";
-
-// ── Import de estilos globales ──
+import { DispositivosES } from "../components/DispositivosES";
+import { TablaPaginasHeatmap } from "../components/TablaPaginasHeatmap";
 import "../styles/global.css";
 ---
 
@@ -27,162 +14,84 @@ import "../styles/global.css";
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Dashboard visual para un simulador de sistemas operativos — gestión de procesos, CPU y colas de planificación."
-    />
+    <meta name="description" content="Dashboard visual para un simulador de sistemas operativos — gestión de procesos, CPU y colas de planificación." />
     <title>Simulador SO — Dashboard</title>
-
-    <!-- Google Fonts: Inter para UI moderna -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   </head>
 
-  <body
-    class="bg-slate-950 text-slate-100 font-[Inter,sans-serif] h-screen overflow-hidden flex flex-col"
-  >
-    <!-- ════════════════════════════════════════════════════════════════
-         HEADER — Barra superior fija
-         ════════════════════════════════════════════════════════════════ -->
-    <header
-      class="h-16 shrink-0 flex items-center justify-between px-6
-             bg-slate-900/80 backdrop-blur-md border-b border-slate-700/60"
-    >
-      <!-- Título e indicador de versión -->
+  <body class="bg-slate-950 text-slate-100 font-[Inter,sans-serif] h-screen overflow-hidden flex flex-col">
+    <header class="h-16 shrink-0 flex items-center justify-between px-6 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/60">
       <div class="flex items-center gap-3">
-        <!-- Ícono decorativo de terminal -->
-        <div
-          class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400
-                 flex items-center justify-center shadow-lg shadow-blue-500/20"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            ></path>
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
-
         <h1 class="text-lg font-bold tracking-tight">
           Simulador de Sistema Operativo
-          <span
-            class="ml-2 text-xs font-mono font-medium text-slate-400
-                   bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700"
-          >
-            v1.0
-          </span>
+          <span class="ml-2 text-xs font-mono font-medium text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">v1.0</span>
         </h1>
       </div>
-
-      <!-- Placeholder: aquí se puede insertar un indicador de estado global -->
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2 text-sm text-slate-400">
           <span class="relative flex h-2.5 w-2.5">
-            <span
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
-            ></span>
-            <span
-              class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"
-            ></span>
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
           Sistema activo
         </div>
       </div>
     </header>
 
-    <!-- ════════════════════════════════════════════════════════════════
-         GRID PRINCIPAL — 3 columnas (3 + 6 + 3 de 12)
-         Ocupa todo el espacio restante debajo del header.
-         ════════════════════════════════════════════════════════════════ -->
     <div class="flex-1 grid grid-cols-12 gap-0 overflow-hidden min-h-0">
-      <!-- ─────────────────────────────────────────────────────────────
-           COLUMNA IZQUIERDA (col-span-3)
-           Contiene: Procesos Nuevos + Cola de Listos
-           ───────────────────────────────────────────────────────────── -->
-      <aside
-        class="col-span-3 bg-slate-900 border-r border-slate-700/60
-               flex flex-col overflow-hidden"
-      >
-        <!-- Sección: Procesos Nuevos -->
+      <!-- COLUMNA IZQUIERDA (col-span-3) -->
+      <aside class="col-span-3 bg-slate-900 border-r border-slate-700/60 flex flex-col overflow-hidden">
         <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
           <ColaProcesos client:load titulo="Procesos Nuevos" tipoCola="nuevos" />
         </section>
-
-        <!-- Sección: Cola de Listos -->
         <section class="flex-1 flex flex-col overflow-hidden p-4">
           <ColaProcesos client:load titulo="Cola de Listos" tipoCola="listos" />
         </section>
       </aside>
 
-      <!-- ─────────────────────────────────────────────────────────────
-           COLUMNA CENTRAL (col-span-6)
-           Contiene: Procesador (CPU) + Controles de Tiempo
-           ───────────────────────────────────────────────────────────── -->
-      <main
-        class="col-span-6 bg-slate-950 flex flex-col items-center
-               overflow-y-auto p-6 gap-6"
-      >
-        <!-- Sub-sección: Procesador (CPU) -->
+      <!-- COLUMNA CENTRAL (col-span-6) -->
+      <main class="col-span-6 bg-slate-950 flex flex-col items-center overflow-y-auto p-6 gap-6">
         <section class="w-full max-w-2xl">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Procesador (CPU)
-            </h2>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Procesador (CPU)</h2>
           </div>
-
-          <!--
-            Componente React existente: CpuViewer
-            Se renderiza con client:load para hidratación inmediata.
-          -->
           <CpuViewer client:load />
         </section>
 
-        <!-- Sub-sección: Controles de Tiempo / Simulación -->
         <section class="w-full max-w-2xl">
           <ControlesSimulacion client:load />
         </section>
 
-        <!-- Sub-sección: Visualización adicional (Memoria, Gantt, etc.) -->
         <section class="w-full max-w-2xl flex-1 min-h-0">
           <div class="flex items-center gap-2 mb-4">
             <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
-              Monitor del Sistema
-            </h2>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Monitor del Sistema</h2>
           </div>
-
-          <!-- Componentes de memoria y swap -->
           <div class="space-y-6">
             <MemoryHeatmap client:load />
             <SwapArea client:load />
+            <TablaPaginasHeatmap client:load />
           </div>
         </section>
       </main>
 
-      <!-- ─────────────────────────────────────────────────────────────
-           COLUMNA DERECHA (col-span-3)
-           Contiene: Cola de Bloqueados (E/S)
-           ───────────────────────────────────────────────────────────── -->
-      <aside
-        class="col-span-3 bg-slate-900 border-l border-slate-700/60
-               flex flex-col overflow-hidden"
-      >
-        <!-- Sección: Cola de Bloqueados (E/S) -->
+      <!-- COLUMNA DERECHA (col-span-3) : Dispositivos E/S -->
+      <aside class="col-span-3 bg-slate-900 border-l border-slate-700/60 flex flex-col overflow-hidden">
         <section class="flex-1 flex flex-col overflow-hidden p-4">
-          <ColaProcesos client:load titulo="Cola de Bloqueados (E/S)" tipoCola="bloqueados" />
+          <div class="flex items-center justify-between mb-3 shrink-0">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              Dispositivos E/S
+            </h3>
+          </div>
+          <DispositivosES client:load />
         </section>
       </aside>
     </div>
