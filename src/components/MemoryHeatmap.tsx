@@ -5,11 +5,9 @@ export const MemoryHeatmap: React.FC = () => {
   const { memoria, cargarEstadoMemoria } = useSimuladorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Determinar el estado de cada marco para colorear
   const getEstadoMarco = (index: number, marco: any) => {
     if (marco.estado === 'swap') return 'swap';
     if (marco.estado === 'libre') {
-      // Detectar fragmentación: marco libre con vecinos ocupados (izquierda o derecha)
       const marcos = memoria.marcos;
       const prev = index > 0 ? marcos[index - 1] : null;
       const next = index < marcos.length - 1 ? marcos[index + 1] : null;
