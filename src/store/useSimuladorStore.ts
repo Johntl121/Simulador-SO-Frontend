@@ -1,94 +1,137 @@
 import { create } from 'zustand';
-import type { EstadoGlobalSO } from '../types/simulador';
+import type { EstadoGlobalSO, PayloadBackend } from '../types/simulador';
 
 interface SimuladorStore extends EstadoGlobalSO {
     avanzarReloj: () => void;
     setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => void;
     setVelocidad: (multiplicador: number) => void;
     simularCambioContexto: (idProcesoEntrante: string) => void;
+    conectarWebSocket: (url: string) => void;
+    desconectarWebSocket: () => void;
 }
 
+// Variable externa para mantener la instancia de WebSocket sin problemas de reactividad
+let wsInstance: WebSocket | null = null;
+
+const initialBackendData: PayloadBackend = {
+    tickActual: 0,
+    configuracion: {
+        algoritmoPlanificacion: "RR",
+        quantum: 4,
+        tamanoPaginaBytes: 4096
+    },
+    estadoCPU: {
+        ejecutandoProcesoId: null,
+        programCounter: 0,
+        limite32Bits: "0x00000000"
+    },
+    colasProcesos: {
+        nuevos: [],
+        listos: [],
+        bloqueados: []
+    },
+    gestionMemoria: {
+        algoritmoReemplazo: "FIFO",
+        totalAccesos: 0,
+        pageFaultsTotales: 0,
+        porcentajeThrashing: 0,
+        marcosRAM: [],
+        areaSwap: { totalPaginasEnDisco: 0, paginas: [] }
+    },
+    dispositivosES: [],
+    sistema: {
+        toleranciaFallosExcedida: false,
+        logs: []
+    }
+};
+
 export const useSimuladorStore = create<SimuladorStore>((set) => ({
-    // Estado Inicial Mockeado (Datos falsos para probar)
-    simulacion: { 
-        relojGlobal: 0, 
-        estado: "PAUSADO", 
-        metricaThrashing: 0,
-        velocidadMultiplicador: 1
-    },
-    procesador: {
-        cpuActiva: { idProceso: "P1", estado: "EJECUTANDO", burstTimeTotal: 10, burstTimeRestante: 5, programCounter: 1024 },
-        estadoDispatcher: "IDLE"
-    },
-    colas: {
-        nuevos: [
-            { idProceso: "P5", estado: "NUEVO", burstTimeTotal: 8 },
-            { idProceso: "P6", estado: "NUEVO", burstTimeTotal: 15 }
-        ],
-        listos: [
-            { idProceso: "P2", estado: "LISTO", burstTimeTotal: 5 },
-            { idProceso: "P3", estado: "LISTO", burstTimeTotal: 12 },
-            { idProceso: "P4", estado: "LISTO", burstTimeTotal: 3 }
-        ],
-        bloqueadosES: [
-            { idProceso: "P7", estado: "BLOQUEADO", burstTimeTotal: 20 }
-        ],
-        terminados: [
-            { idProceso: "P0", estado: "TERMINADO", burstTimeTotal: 6 }
-        ]
-    },
+    // Estado local
+    estadoConexionWS: "DESCONECTADO",
+    estadoSimulacionLocal: "PAUSADO",
+    velocidadMultiplicador: 1,
+    estadoDispatcher: "IDLE",
 
-    // Acción de prueba para ver si React actualiza
-    avanzarReloj: () => set((state) => ({
-        simulacion: { ...state.simulacion, relojGlobal: state.simulacion.relojGlobal + 1 }
-    })),
+    // Estado del backend
+    backendData: initialBackendData,
 
-    setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => set((state) => ({
-        simulacion: { ...state.simulacion, estado }
-    })),
+    avanzarReloj: () => set((state) => {
+        if (!state.backendData) return state;
+        return {
+            backendData: {
+                ...state.backendData,
+                tickActual: state.backendData.tickActual + 1
+            }
+        };
+    }),
 
-    setVelocidad: (multiplicador: number) => set((state) => ({
-        simulacion: { ...state.simulacion, velocidadMultiplicador: multiplicador }
-    })),
+    setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => set({ estadoSimulacionLocal: estado }),
 
-    // Fase 3: Simulación de cambio de contexto del Dispatcher
+    setVelocidad: (multiplicador: number) => set({ velocidadMultiplicador: multiplicador }),
+
     simularCambioContexto: (idProcesoEntrante: string) => {
-        // 1. Cambiar estado del Dispatcher a "CAMBIANDO_CONTEXTO"
-        set((state) => ({
-            procesador: { ...state.procesador, estadoDispatcher: "CAMBIANDO_CONTEXTO" }
-        }));
-
-        // 2. Después de 1 segundo, completar el cambio de contexto
+        set({ estadoDispatcher: "CAMBIANDO_CONTEXTO" });
         setTimeout(() => {
             set((state) => {
-                // Buscar el proceso entrante en la cola de listos
-                const procesoEntrante = state.colas.listos.find(
-                    (p) => p.idProceso === idProcesoEntrante
-                );
-
-                // Si no se encuentra en la cola, solo volver a IDLE
-                if (!procesoEntrante) {
-                    return { procesador: { ...state.procesador, estadoDispatcher: "IDLE" } };
-                }
-
+                if (!state.backendData) return { estadoDispatcher: "IDLE" };
                 return {
-                    procesador: {
-                        cpuActiva: {
-                            ...procesoEntrante,
-                            estado: "EJECUTANDO" as const,
-                            burstTimeRestante: procesoEntrante.burstTimeRestante ?? procesoEntrante.burstTimeTotal,
-                            programCounter: procesoEntrante.programCounter ?? 0
+                    estadoDispatcher: "IDLE",
+                    backendData: {
+                        ...state.backendData,
+                        estadoCPU: {
+                            ...state.backendData.estadoCPU,
+                            ejecutandoProcesoId: idProcesoEntrante
                         },
-                        estadoDispatcher: "IDLE"
-                    },
-                    colas: {
-                        ...state.colas,
-                        listos: state.colas.listos.filter(
-                            (p) => p.idProceso !== idProcesoEntrante
-                        )
+                        colasProcesos: {
+                            ...state.backendData.colasProcesos,
+                            listos: state.backendData.colasProcesos.listos.filter(id => id !== idProcesoEntrante)
+                        }
                     }
                 };
             });
         }, 1000);
+    },
+
+    // --- WebSockets ---
+    conectarWebSocket: (url: string) => {
+        set({ estadoConexionWS: "CONECTANDO" });
+
+        if (wsInstance) {
+            wsInstance.close();
+        }
+
+        wsInstance = new WebSocket(url);
+
+        wsInstance.onopen = () => {
+            set({ estadoConexionWS: "CONECTADO" });
+        };
+
+        wsInstance.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            set({ estadoConexionWS: "ERROR" });
+        };
+
+        wsInstance.onclose = () => {
+            set({ estadoConexionWS: "DESCONECTADO" });
+            wsInstance = null;
+        };
+
+        wsInstance.onmessage = (event) => {
+            try {
+                const payload = JSON.parse(event.data) as PayloadBackend;
+                // Sobreescribir masivamente el estado con el payload del backend
+                set({ backendData: payload });
+            } catch (error) {
+                console.error("Error al parsear el mensaje del WebSocket", error);
+            }
+        };
+    },
+
+    desconectarWebSocket: () => {
+        if (wsInstance) {
+            wsInstance.close();
+            wsInstance = null;
+        }
+        set({ estadoConexionWS: "DESCONECTADO" });
     }
 }));
