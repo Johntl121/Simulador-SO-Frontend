@@ -6,6 +6,7 @@ import { MemoryHeatmap } from "../components/MemoryHeatmap";
 import { SwapArea } from "../components/SwapArea";
 import { DispositivosES } from "../components/DispositivosES";
 import { TablaPaginasHeatmap } from "../components/TablaPaginasHeatmap";
+import { PanelConfiguracion } from "../components/PanelConfiguracion";
 import "../styles/global.css";
 ---
 
@@ -95,5 +96,8 @@ import "../styles/global.css";
         </section>
       </aside>
     </div>
+
+    <!-- Modal de configuración inicial (overlay sobre todo el dashboard) -->
+    <PanelConfiguracion client:load />
   </body>
 </html>
