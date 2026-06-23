@@ -27,6 +27,10 @@ interface SimuladorStore extends EstadoGlobalSO {
     desconectarWebSocket: () => void;
     enviarTickWS: () => void;
     enviarComandoWS: (payload: Record<string, unknown>) => void;
+
+    // Configuración aplicada
+    configuracionAplicada: boolean;
+    setConfiguracionAplicada: (valor: boolean) => void;
 }
 
 // Variable externa para mantener la instancia de WebSocket sin problemas de reactividad
@@ -40,7 +44,9 @@ const initialBackendData: PayloadBackend = {
     configuracion: {
         algoritmoPlanificacion: "RR",
         quantum: 4,
-        tamanoPaginaBytes: 4096
+        tamanoPaginaBytes: 32768,
+        asignacionMemoria: "FIRST_FIT",
+        reemplazoPaginas: "FIFO"
     },
     estadoCPU: {
         ejecutandoProcesoId: null,
@@ -74,6 +80,7 @@ export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
     estadoSimulacionLocal: "PAUSADO",
     velocidadMultiplicador: 1,
     estadoDispatcher: "IDLE",
+    configuracionAplicada: false,
 
     // Estado de memoria de dev
     memoria: {
@@ -105,6 +112,8 @@ export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
     }),
 
     setEstadoSimulacion: (estado: "PAUSADO" | "EJECUTANDO") => set({ estadoSimulacionLocal: estado }),
+
+    setConfiguracionAplicada: (valor: boolean) => set({ configuracionAplicada: valor }),
 
     setVelocidad: (multiplicador: number) => set({ velocidadMultiplicador: multiplicador }),
 

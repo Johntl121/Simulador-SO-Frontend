@@ -4,6 +4,8 @@ export interface Configuracion {
   algoritmoPlanificacion: string;
   quantum: number;
   tamanoPaginaBytes: number;
+  asignacionMemoria: string;
+  reemplazoPaginas: string;
 }
 
 export interface EstadoCPU {
