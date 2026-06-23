@@ -19,7 +19,7 @@ export const ControlesSimulacion: React.FC = () => {
   const inyectarMockData = () => {
     const mockPayload: PayloadBackend = {
       tickActual: 18,
-      configuracion: { algoritmoPlanificacion: "RR", quantum: 4, tamanoPaginaBytes: 4096 },
+      configuracion: { algoritmoPlanificacion: "RR", quantum: 4, tamanoPaginaBytes: 4096, asignacionMemoria: "FIRST_FIT", reemplazoPaginas: "FIFO" },
       estadoCPU: { ejecutandoProcesoId: "P-01", programCounter: 10, limite32Bits: "0x0000000A" },
       colasProcesos: { nuevos: ["P-04"], listos: ["P-02", "P-03"], bloqueados: [] },
       diccionarioProcesos: {
