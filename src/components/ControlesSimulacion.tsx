@@ -43,8 +43,8 @@ export const ControlesSimulacion: React.FC = () => {
       action: "admitir",
       id: `P-TEMP`,
       totalInstrucciones: 15,
-      bytesStack: 1024,
-      bytesHeap: 2048
+      bytesStack: 131072,
+      bytesHeap: 131072
     });
   };
 

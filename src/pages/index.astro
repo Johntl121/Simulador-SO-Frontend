@@ -86,6 +86,9 @@ import "../styles/global.css";
 
       <!-- COLUMNA DERECHA (col-span-3) : Dispositivos E/S -->
       <aside class="col-span-3 bg-slate-900 border-l border-slate-700/60 flex flex-col overflow-hidden">
+        <section class="flex-1 flex flex-col overflow-hidden border-b border-slate-700/40 p-4">
+          <ColaProcesos client:load titulo="Cola de Bloqueados" tipoCola="bloqueados" />
+        </section>
         <section class="flex-1 flex flex-col overflow-hidden p-4">
           <div class="flex items-center justify-between mb-3 shrink-0">
             <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-300">
