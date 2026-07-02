@@ -12,15 +12,24 @@ export const CpuViewer = () => {
     const [isAnimating, setIsAnimating] = useState(false);
     const prevCpuId = useRef(cpuActivaId);
 
-    useEffect(() => {
-        if (cpuActivaId !== prevCpuId.current && prevCpuId.current !== null && cpuActivaId !== null) {
-            setIsAnimating(true);
-            const timer = setTimeout(() => setIsAnimating(false), 600);
-            prevCpuId.current = cpuActivaId;
-            return () => clearTimeout(timer);
-        }
-        prevCpuId.current = cpuActivaId;
-    }, [cpuActivaId]);
+  useEffect(() => {
+    // Si hay un proceso en CPU y es diferente al anterior, animamos
+    if (cpuActivaId && cpuActivaId !== prevCpuId.current) {
+      setIsAnimating(true);
+      prevCpuId.current = cpuActivaId;
+      
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 600);
+      
+      return () => clearTimeout(timer); // Limpieza para evitar bugs
+    } 
+    // Si la CPU se vacía (terminaron todos los procesos), forzamos apagado
+    else if (!cpuActivaId) {
+      setIsAnimating(false);
+      prevCpuId.current = null;
+    }
+  }, [cpuActivaId]);
 
     return (
         <div className="p-6 bg-slate-800 text-white rounded-xl shadow-lg border border-slate-700 max-w-sm">
