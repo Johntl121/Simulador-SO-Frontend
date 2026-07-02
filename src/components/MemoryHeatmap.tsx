@@ -41,27 +41,15 @@ export const MemoryHeatmap: React.FC = () => {
   const { backendData } = useSimuladorStore();
   const marcosRAM = backendData?.gestionMemoria?.marcosRAM || [];
 
-  // Asegurar que tenemos 64 marcos visuales
-  const marcos = marcosRAM.length >= 64
-    ? marcosRAM
-    : [
-        ...marcosRAM,
-        ...Array(64 - marcosRAM.length)
-          .fill(null)
-          .map((_, i) => ({
-            idMarco: marcosRAM.length + i,
-            idProcesoAsignado: null,
-            numeroPaginaAsignada: 0,
-          })),
-      ];
+  // Asegurar que tenemos exactamente 64 marcos visuales sin duplicar IDs
+  const marcos = Array.from({ length: 64 }, (_, i) => {
+    const existe = marcosRAM.find(m => m.idMarco === i);
+    return existe ? existe : { idMarco: i, idProcesoAsignado: null, numeroPaginaAsignada: 0 };
+  });
 
   const getEstadoMarco = (index: number, marco: any) => {
-    if (marco.idProcesoAsignado === null) {
-      const prev = index > 0 ? marcos[index - 1] : null;
-      const next = index < marcos.length - 1 ? marcos[index + 1] : null;
-      const tieneVecinoOcupado = (prev && prev.idProcesoAsignado !== null) || (next && next.idProcesoAsignado !== null);
-      return tieneVecinoOcupado ? 'fragmentado' : 'libre';
-    }
+    if (marco.idProcesoAsignado === null) return 'libre';
+    if (marco.estadoAsignacion === 'fragmentado') return 'fragmentado';
     return 'ocupado';
   };
 
@@ -79,7 +67,7 @@ export const MemoryHeatmap: React.FC = () => {
       </div>
 
       <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columnas}, 1fr)` }}>
-        {marcos.slice(0, 64).map((marco, idx) => (
+        {marcos.map((marco, idx) => (
           <CuadroMarcoRAM 
             key={marco.idMarco} 
             index={idx} 
