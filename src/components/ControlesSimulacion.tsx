@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useSimuladorStore } from "../store/useSimuladorStore";
 import { useRelojGlobal } from "../hooks/useRelojGlobal";
 
@@ -16,7 +16,51 @@ export const ControlesSimulacion: React.FC = () => {
     enviarComandoWS
   } = useSimuladorStore();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (file.name.endsWith('.json')) {
+        try {
+          const data = JSON.parse(text);
+          data.forEach((proc: any) => {
+            enviarComandoWS({ 
+              action: "admitir", 
+              id: proc.id, 
+              totalInstrucciones: Number(proc.instrucciones), 
+              bytesStack: Number(proc.stack), 
+              bytesHeap: Number(proc.heap) 
+            });
+          });
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      } else if (file.name.endsWith('.csv')) {
+        const lines = text.split('\n');
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const [idStr, instrucciones, stack, heap] = line.split(',');
+          if (idStr && instrucciones && stack && heap) {
+            enviarComandoWS({ 
+              action: "admitir", 
+              id: idStr.trim(), 
+              totalInstrucciones: Number(instrucciones.trim()), 
+              bytesStack: Number(stack.trim()), 
+              bytesHeap: Number(heap.trim()) 
+            });
+          }
+        }
+      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
+  };
 
   const handleAgregarProcesoPrueba = () => {
     enviarComandoWS({
@@ -100,6 +144,15 @@ export const ControlesSimulacion: React.FC = () => {
           )}
         </div>
         <div className="flex gap-2 mt-2">
+          <input type="file" accept=".csv,.json" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!isConectado}
+            className="text-sm px-3 py-1.5 rounded-md font-medium transition-colors shadow-md bg-teal-600 hover:bg-teal-500 text-white disabled:bg-teal-600/30 disabled:text-teal-400/50"
+            title={isConectado ? "Cargar procesos desde un archivo" : "Conecta el WebSocket primero"}
+          >
+            📂 Cargar Lote
+          </button>
           <button
             onClick={handleAgregarProcesoPrueba}
             disabled={!isConectado}

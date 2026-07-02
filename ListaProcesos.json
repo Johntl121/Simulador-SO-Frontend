@@ -1,0 +1,92 @@
+[
+    {
+        "id": "P-Lote-1",
+        "instrucciones": 10,
+        "stack": 8192,
+        "heap": 16384
+    },
+    {
+        "id": "P-Lote-2",
+        "instrucciones": 5,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-3",
+        "instrucciones": 30,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-4",
+        "instrucciones": 12,
+        "stack": 8192,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-5",
+        "instrucciones": 8,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-6",
+        "instrucciones": 15,
+        "stack": 8192,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-7",
+        "instrucciones": 20,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-8",
+        "instrucciones": 7,
+        "stack": 8192,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-9",
+        "instrucciones": 10,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-10",
+        "instrucciones": 5,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-11",
+        "instrucciones": 45,
+        "stack": 8192,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-12",
+        "instrucciones": 3,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-13",
+        "instrucciones": 18,
+        "stack": 8192,
+        "heap": 16384
+    },
+    {
+        "id": "P-Lote-14",
+        "instrucciones": 9,
+        "stack": 4096,
+        "heap": 8192
+    },
+    {
+        "id": "P-Lote-15",
+        "instrucciones": 6,
+        "stack": 4096,
+        "heap": 8192
+    }
+]
