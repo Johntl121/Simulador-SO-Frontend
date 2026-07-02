@@ -59,20 +59,18 @@ export const DispositivosES: React.FC = () => {
         )}
 
         {/* Prompt Interactivo para el Teclado */}
-        {requiresKeyboardInput && (
-          <div className="absolute inset-0 bg-slate-950/95 z-10 flex flex-col items-center justify-center p-2 text-center border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
-            <div className="text-green-400 font-mono text-[10px] sm:text-xs mb-3 leading-relaxed">
-              &gt; PROMPT DE TECLADO<br />
-              El proceso <span className="font-bold text-white">{disp.procesoActualId}</span> requiere entrada.<br />
-              Presione [C] para Continuar o [X] para Cancelar.
-            </div>
-            <div className="flex gap-3">
+        {nombre === 'Teclado' && disp.procesoActualId && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-sm p-3">
+            <p className="text-green-400 font-mono text-xs font-bold text-center mb-2">
+              {`> PROMPT: El proceso ${disp.procesoActualId} requiere entrada.`}
+            </p>
+            <div className="flex flex-row gap-2">
               <button
                 onClick={() => {
                   console.log('Comando enviado: C');
                   enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "C" });
                 }}
-                className="bg-green-900/40 hover:bg-green-600/60 text-green-400 hover:text-white border border-green-600/50 font-mono text-[10px] px-3 py-1.5 rounded transition-colors shadow-lg"
+                className="bg-green-600/20 text-green-400 border border-green-500 hover:bg-green-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors"
               >
                 [C] Continuar
               </button>
@@ -81,7 +79,7 @@ export const DispositivosES: React.FC = () => {
                   console.log('Comando enviado: X');
                   enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "X" });
                 }}
-                className="bg-red-900/40 hover:bg-red-600/60 text-red-400 hover:text-white border border-red-600/50 font-mono text-[10px] px-3 py-1.5 rounded transition-colors shadow-lg"
+                className="bg-red-600/20 text-red-400 border border-red-500 hover:bg-red-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors"
               >
                 [X] Cancelar
               </button>

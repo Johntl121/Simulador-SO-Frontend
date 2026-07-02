@@ -3,7 +3,7 @@ import { useSimuladorStore } from '../store/useSimuladorStore';
 
 export const CpuViewer = () => {
     // Conectamos el componente al store de Zustand
-    const { backendData, estadoDispatcher, avanzarReloj, simularCambioContexto } = useSimuladorStore();
+    const { backendData, estadoDispatcher, avanzarReloj, enviarComandoWS } = useSimuladorStore();
     const isCambiandoContexto = estadoDispatcher === "CAMBIANDO_CONTEXTO";
 
     const tickActual = backendData?.tickActual ?? 0;
@@ -93,18 +93,18 @@ export const CpuViewer = () => {
 
                 {/* Botón de prueba para desarrollo */}
                 <button
-                    onClick={() => simularCambioContexto("P2")}
-                    disabled={isCambiandoContexto}
+                    onClick={() => enviarComandoWS({ action: "io", idProceso: cpuActivaId, nombreDispositivo: "Teclado" })}
+                    disabled={!cpuActivaId || isCambiandoContexto}
                     className={`flex-1 font-bold py-2 px-4 rounded transition-colors text-sm ${
-                        isCambiandoContexto
+                        !cpuActivaId || isCambiandoContexto
                             ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                            : 'bg-amber-600 hover:bg-amber-700 text-white'
+                            : 'bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-500/20'
                     }`}
                 >
-                    🔄 Context Switch (P2)
+                    ⌨️ Forzar Teclado
                 </button>
             </div>
-            <p className="text-[10px] text-slate-600 mt-1 text-right italic">* Botón de prueba (dev)</p>
+            <p className="text-[10px] text-slate-600 mt-1 text-right italic">* Botón de prueba para inyectar E/S</p>
         </div>
     );
 };
