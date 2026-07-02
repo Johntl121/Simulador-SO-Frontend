@@ -1,7 +1,7 @@
 import React from "react";
 import { useSimuladorStore } from "../store/useSimuladorStore";
 import { useRelojGlobal } from "../hooks/useRelojGlobal";
-import type { PayloadBackend } from "../types/simulador";
+
 
 export const ControlesSimulacion: React.FC = () => {
   useRelojGlobal(); // <== AQUÍ ESTABA EL BUG SILENCIOSO (nunca se invocó)
@@ -16,27 +16,7 @@ export const ControlesSimulacion: React.FC = () => {
     enviarComandoWS
   } = useSimuladorStore();
 
-  const inyectarMockData = () => {
-    const mockPayload: PayloadBackend = {
-      tickActual: 18,
-      configuracion: { algoritmoPlanificacion: "RR", quantum: 4, tamanoPaginaBytes: 4096, asignacionMemoria: "FIRST_FIT", reemplazoPaginas: "FIFO" },
-      estadoCPU: { ejecutandoProcesoId: "P-01", programCounter: 10, limite32Bits: "0x0000000A" },
-      colasProcesos: { nuevos: ["P-04"], listos: ["P-02", "P-03"], bloqueados: [] },
-      diccionarioProcesos: {
-        "P-01": { id: "P-01", estado: "EJECUTANDO", burstTimeRestante: 8 },
-        "P-02": { id: "P-02", estado: "LISTO", burstTimeRestante: 5 },
-        "P-03": { id: "P-03", estado: "LISTO", burstTimeRestante: 12 },
-        "P-04": { id: "P-04", estado: "NUEVO", burstTimeRestante: 20 }
-      },
-      gestionMemoria: {
-        algoritmoReemplazo: "FIFO", totalAccesos: 150, pageFaultsTotales: 12, porcentajeThrashing: 8.0,
-        marcosRAM: [], areaSwap: { totalPaginasEnDisco: 0, paginas: [] }
-      },
-      dispositivosES: [],
-      sistema: { toleranciaFallosExcedida: false, logs: [] }
-    };
-    useSimuladorStore.setState({ backendData: mockPayload });
-  };
+
 
   const handleAgregarProcesoPrueba = () => {
     enviarComandoWS({
@@ -120,13 +100,6 @@ export const ControlesSimulacion: React.FC = () => {
           )}
         </div>
         <div className="flex gap-2 mt-2">
-          <button
-            onClick={inyectarMockData}
-            className="bg-purple-600 hover:bg-purple-500 text-white text-sm px-3 py-1.5 rounded-md font-medium transition-colors shadow-md shadow-purple-500/20"
-            title="Inyecta datos de prueba para ver la UI"
-          >
-            Datos Prueba
-          </button>
           <button
             onClick={handleAgregarProcesoPrueba}
             disabled={!isConectado}
