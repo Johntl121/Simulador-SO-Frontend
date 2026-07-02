@@ -35,17 +35,25 @@ const TarjetaSwap: React.FC<{ bloque: any }> = ({ bloque }) => {
 };
 
 export const SwapArea: React.FC = () => {
-  const { swap } = useSimuladorStore();
+  const paginasSwap = useSimuladorStore(state => state.backendData?.gestionMemoria?.areaSwap?.paginas || []);
   const columnas = 4;
+
+  const bloques = Array.from({ length: 16 }, (_, i) => {
+    const pagina = paginasSwap[i];
+    if (pagina) {
+      return { idBloque: i, estado: 'ocupado', idProceso: pagina.idProceso };
+    }
+    return { idBloque: i, estado: 'libre', idProceso: null };
+  });
 
   return (
     <div className="w-full mt-6">
       <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-3">
-        Área de Swap ({swap.tamaño} bloques)
+        Área de Swap (16 bloques)
       </h3>
 
       <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${columnas}, 1fr)` }}>
-        {swap.bloques.map((bloque) => (
+        {bloques.map((bloque) => (
           <TarjetaSwap key={bloque.idBloque} bloque={bloque} />
         ))}
       </div>
