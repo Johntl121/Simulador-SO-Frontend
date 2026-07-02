@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSimuladorStore } from '../store/useSimuladorStore';
 
 export const CpuViewer = () => {
     // Conectamos el componente al store de Zustand
-    const { backendData, estadoDispatcher, avanzarReloj, enviarComandoWS } = useSimuladorStore();
-    const isCambiandoContexto = estadoDispatcher === "CAMBIANDO_CONTEXTO";
+    const { backendData, avanzarReloj, enviarComandoWS } = useSimuladorStore();
 
     const tickActual = backendData?.tickActual ?? 0;
-    const cpuActivaId = backendData?.estadoCPU.ejecutandoProcesoId;
+    const cpuActivaId = backendData?.estadoCPU.ejecutandoProcesoId ?? null;
     const programCounter = backendData?.estadoCPU.programCounter;
+
+    const [isAnimating, setIsAnimating] = useState(false);
+    const prevCpuId = useRef(cpuActivaId);
+
+    useEffect(() => {
+        if (cpuActivaId !== prevCpuId.current && prevCpuId.current !== null && cpuActivaId !== null) {
+            setIsAnimating(true);
+            const timer = setTimeout(() => setIsAnimating(false), 600);
+            prevCpuId.current = cpuActivaId;
+            return () => clearTimeout(timer);
+        }
+        prevCpuId.current = cpuActivaId;
+    }, [cpuActivaId]);
 
     return (
         <div className="p-6 bg-slate-800 text-white rounded-xl shadow-lg border border-slate-700 max-w-sm">
@@ -20,7 +32,7 @@ export const CpuViewer = () => {
             </div>
 
             <div className="bg-slate-900 p-4 rounded border border-slate-600 relative overflow-hidden">
-                {isCambiandoContexto ? (
+                {isAnimating ? (
                     /* ── Overlay de Context Switch ── */
                     <div className="animate-pulse flex flex-col items-center justify-center gap-3 py-4">
                         {/* Spinner SVG */}
@@ -77,9 +89,9 @@ export const CpuViewer = () => {
 
             {/* Indicador de estado del Dispatcher */}
             <div className="mt-3 flex items-center gap-2">
-                <span className={`inline-block w-2 h-2 rounded-full ${isCambiandoContexto ? 'bg-amber-400 animate-pulse' : 'bg-green-500'}`} />
+                <span className={`inline-block w-2 h-2 rounded-full ${isAnimating ? 'bg-amber-400 animate-pulse' : 'bg-green-500'}`} />
                 <span className="text-xs text-slate-400">
-                    Dispatcher: {isCambiandoContexto ? 'Cambio de contexto...' : 'IDLE'}
+                    Dispatcher: {isAnimating ? 'Cambio de contexto...' : 'IDLE'}
                 </span>
             </div>
 
@@ -94,9 +106,9 @@ export const CpuViewer = () => {
                 {/* Botón de prueba para desarrollo */}
                 <button
                     onClick={() => enviarComandoWS({ action: "io", idProceso: cpuActivaId, nombreDispositivo: "Teclado" })}
-                    disabled={!cpuActivaId || isCambiandoContexto}
+                    disabled={!cpuActivaId || isAnimating}
                     className={`flex-1 font-bold py-2 px-4 rounded transition-colors text-sm ${
-                        !cpuActivaId || isCambiandoContexto
+                        !cpuActivaId || isAnimating
                             ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                             : 'bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-500/20'
                     }`}
