@@ -2,7 +2,8 @@ import React from 'react';
 import { useSimuladorStore } from '../store/useSimuladorStore';
 
 export const DispositivosES: React.FC = () => {
-  const dispositivos = useSimuladorStore((state) => state.backendData?.dispositivosES || []);
+  const { backendData, enviarComandoWS } = useSimuladorStore();
+  const dispositivos = backendData?.dispositivosES || [];
 
   const findDispositivo = (nombre: string) => {
     return dispositivos.find((d) => d.nombre.toLowerCase() === nombre.toLowerCase());
@@ -19,8 +20,10 @@ export const DispositivosES: React.FC = () => {
       );
     }
 
+    const requiresKeyboardInput = nombre === 'Teclado' && disp.procesoActualId;
+
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-md">
+      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-md relative overflow-hidden">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-bold text-sm uppercase tracking-wider text-slate-300">{disp.nombre}</h4>
           <span className="text-xs bg-slate-700 px-2 py-0.5 rounded-full text-slate-300">
@@ -53,6 +56,37 @@ export const DispositivosES: React.FC = () => {
           </div>
         ) : (
           <p className="text-[10px] text-slate-500 italic">Cola vacía</p>
+        )}
+
+        {/* Prompt Interactivo para el Teclado */}
+        {requiresKeyboardInput && (
+          <div className="absolute inset-0 bg-slate-950/95 z-10 flex flex-col items-center justify-center p-2 text-center border border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
+            <div className="text-green-400 font-mono text-[10px] sm:text-xs mb-3 leading-relaxed">
+              &gt; PROMPT DE TECLADO<br />
+              El proceso <span className="font-bold text-white">{disp.procesoActualId}</span> requiere entrada.<br />
+              Presione [C] para Continuar o [X] para Cancelar.
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  console.log('Comando enviado: C');
+                  enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "C" });
+                }}
+                className="bg-green-900/40 hover:bg-green-600/60 text-green-400 hover:text-white border border-green-600/50 font-mono text-[10px] px-3 py-1.5 rounded transition-colors shadow-lg"
+              >
+                [C] Continuar
+              </button>
+              <button
+                onClick={() => {
+                  console.log('Comando enviado: X');
+                  enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "X" });
+                }}
+                className="bg-red-900/40 hover:bg-red-600/60 text-red-400 hover:text-white border border-red-600/50 font-mono text-[10px] px-3 py-1.5 rounded transition-colors shadow-lg"
+              >
+                [X] Cancelar
+              </button>
+            </div>
+          </div>
         )}
       </div>
     );
