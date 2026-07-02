@@ -15,7 +15,7 @@ const CuadroMarcoRAM: React.FC<{ index: number, marco: any, getEstadoMarco: (idx
   }, [marco.idProcesoAsignado, marco.numeroPaginaAsignada]);
 
   const estado = getEstadoMarco(index, marco);
-  
+
   let baseColor = 'bg-slate-700/30 border-slate-600/20';
   if (estado === 'libre') baseColor = 'bg-emerald-600/70 border-emerald-500/30';
   else if (estado === 'ocupado') baseColor = 'bg-rose-600/70 border-rose-500/30';
@@ -32,7 +32,7 @@ const CuadroMarcoRAM: React.FC<{ index: number, marco: any, getEstadoMarco: (idx
       className={`aspect-square rounded border flex items-center justify-center text-[8px] transition-all duration-700 ease-out hover:scale-105 ${activeClasses}`}
       title={title}
     >
-      {marco.idProcesoAsignado?.slice(-2)}
+      {marco.idProcesoAsignado?.replace('P-', '')}
     </div>
   );
 };
@@ -68,11 +68,11 @@ export const MemoryHeatmap: React.FC = () => {
 
       <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columnas}, 1fr)` }}>
         {marcos.map((marco, idx) => (
-          <CuadroMarcoRAM 
-            key={marco.idMarco} 
-            index={idx} 
-            marco={marco} 
-            getEstadoMarco={getEstadoMarco} 
+          <CuadroMarcoRAM
+            key={marco.idMarco}
+            index={idx}
+            marco={marco}
+            getEstadoMarco={getEstadoMarco}
           />
         ))}
       </div>

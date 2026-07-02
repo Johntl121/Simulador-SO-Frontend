@@ -15,8 +15,8 @@ const TarjetaSwap: React.FC<{ bloque: any }> = ({ bloque }) => {
   }, [bloque.idProceso]);
 
   // Clases base dependiendo del estado (libre/ocupado)
-  const baseClasses = bloque.estado === 'libre' 
-    ? 'bg-slate-700/30 border-slate-700/20 text-white/30' 
+  const baseClasses = bloque.estado === 'libre'
+    ? 'bg-slate-700/30 border-slate-700/20 text-white/30'
     : 'bg-orange-700/50 border-orange-700/30 text-white/80';
 
   // Si está destacado (highlighted), sobrescribimos estilos temporalmente
@@ -29,7 +29,7 @@ const TarjetaSwap: React.FC<{ bloque: any }> = ({ bloque }) => {
       className={`aspect-square rounded border flex items-center justify-center text-[9px] transition-all duration-700 ease-out ${activeClasses}`}
       title={`Bloque ${bloque.idBloque}: ${bloque.estado}${bloque.idProceso ? ' (P: ' + bloque.idProceso + ')' : ''}`}
     >
-      {bloque.idProceso?.slice(-2)}
+      {bloque.idProceso?.replace('P-', '')}
     </div>
   );
 };
@@ -43,7 +43,7 @@ export const SwapArea: React.FC = () => {
       <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-3">
         Área de Swap ({swap.tamaño} bloques)
       </h3>
-      
+
       <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${columnas}, 1fr)` }}>
         {swap.bloques.map((bloque) => (
           <TarjetaSwap key={bloque.idBloque} bloque={bloque} />

@@ -41,7 +41,7 @@ export const ControlesSimulacion: React.FC = () => {
   const handleAgregarProcesoPrueba = () => {
     enviarComandoWS({
       action: "admitir",
-      id: `P-${Math.floor(Math.random() * 1000)}`,
+      id: `P-TEMP`,
       totalInstrucciones: 15,
       bytesStack: 1024,
       bytesHeap: 2048
