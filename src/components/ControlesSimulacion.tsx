@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useSimuladorStore } from "../store/useSimuladorStore";
 import { useRelojGlobal } from "../hooks/useRelojGlobal";
+import { ModalEstadisticas } from "./ModalEstadisticas";
 
 
 export const ControlesSimulacion: React.FC = () => {
@@ -17,6 +18,7 @@ export const ControlesSimulacion: React.FC = () => {
   } = useSimuladorStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -165,6 +167,9 @@ export const ControlesSimulacion: React.FC = () => {
           >
             + Añadir Proceso
           </button>
+          <button onClick={() => setIsModalOpen(true)} className="text-sm px-3 py-1.5 rounded-md font-medium transition-colors shadow-md bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+            📊 Estadísticas
+          </button>
         </div>
       </div>
 
@@ -202,6 +207,7 @@ export const ControlesSimulacion: React.FC = () => {
         </div>
       </div>
 
+      <ModalEstadisticas isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };
