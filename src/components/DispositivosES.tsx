@@ -50,19 +50,13 @@ export const DispositivosES: React.FC = () => {
             </p>
             <div className="flex flex-row gap-2">
               <button
-                onClick={() => {
-                  console.log('Comando enviado: C');
-                  enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "C" });
-                }}
+                onClick={() => enviarComandoWS({ action: "teclado", idProceso: disp.procesoActualId, input: "C" })}
                 className="bg-green-600/20 text-green-400 border border-green-500 hover:bg-green-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors cursor-pointer"
               >
                 [C] Continuar
               </button>
               <button
-                onClick={() => {
-                  console.log('Comando enviado: X');
-                  enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "X" });
-                }}
+                onClick={() => enviarComandoWS({ action: "teclado", idProceso: disp.procesoActualId, input: "X" })}
                 className="bg-red-600/20 text-red-400 border border-red-500 hover:bg-red-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors cursor-pointer"
               >
                 [X] Cancelar
