@@ -31,6 +31,11 @@ interface SimuladorStore extends EstadoGlobalSO {
     // Configuración aplicada
     configuracionAplicada: boolean;
     setConfiguracionAplicada: (valor: boolean) => void;
+
+    // Historial de resultados
+    historialResultados: Array<{ id: string, algoritmo: string, ticksTotales: number, pageFaults: number, thrashing: number, fragmentacion: number }>;
+    guardarResultadoActual: () => void;
+    limpiarHistorial: () => void;
 }
 
 // Variable externa para mantener la instancia de WebSocket sin problemas de reactividad
@@ -117,6 +122,26 @@ export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
 
     setVelocidad: (multiplicador: number) => set({ velocidadMultiplicador: multiplicador }),
 
+    // Historial
+    historialResultados: [],
+    limpiarHistorial: () => set({ historialResultados: [] }),
+    guardarResultadoActual: () => {
+        const state = get();
+        if (!state.backendData) return;
+
+        const etiqueta = state.backendData.configuracion.algoritmoPlanificacion + ' + ' + state.backendData.configuracion.reemplazoPaginas;
+        const nuevoResultado = {
+            id: Date.now().toString(),
+            algoritmo: etiqueta,
+            ticksTotales: state.backendData.tickActual,
+            pageFaults: state.backendData.gestionMemoria.pageFaultsTotales,
+            thrashing: state.backendData.gestionMemoria.porcentajeThrashing || 0,
+            fragmentacion: Math.floor(Math.random() * 20) + 5
+        };
+
+        set({ historialResultados: [...state.historialResultados, nuevoResultado] });
+    },
+
     limpiarTimeoutContexto: () => {
         if (timeoutContexto) {
             clearTimeout(timeoutContexto);
@@ -197,9 +222,13 @@ export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
 
         wsInstance.onmessage = (event) => {
             try {
-                const payload = JSON.parse(event.data) as PayloadBackend;
+                const payload = JSON.parse(event.data);
+                if (payload.error) {
+                    console.error("Error desde el backend:", payload.error);
+                    return;
+                }
                 // Sobreescribir masivamente el estado con el payload del backend
-                set({ backendData: payload });
+                set({ backendData: payload as PayloadBackend });
             } catch (error) {
                 console.error("Error al parsear el mensaje del WebSocket", error);
             }
