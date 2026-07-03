@@ -42,7 +42,7 @@ const FilaPagina: React.FC<{ pagina: any }> = ({ pagina }) => {
 
 export const TablaPaginasHeatmap: React.FC = () => {
   const { backendData } = useSimuladorStore();
-  if (!backendData) return <p className="text-slate-500">Sin datos</p>;
+  if (!backendData || !backendData.gestionMemoria) return <p className="text-slate-500">Sin datos</p>;
 
   const { marcosRAM, areaSwap } = backendData.gestionMemoria;
 

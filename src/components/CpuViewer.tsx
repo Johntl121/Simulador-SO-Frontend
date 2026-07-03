@@ -6,8 +6,8 @@ export const CpuViewer = () => {
     const { backendData, avanzarReloj, enviarComandoWS } = useSimuladorStore();
 
     const tickActual = backendData?.tickActual ?? 0;
-    const cpuActivaId = backendData?.estadoCPU.ejecutandoProcesoId ?? null;
-    const programCounter = backendData?.estadoCPU.programCounter;
+    const cpuActivaId = backendData?.estadoCPU?.ejecutandoProcesoId ?? null;
+    const programCounter = backendData?.estadoCPU?.programCounter ?? 0;
 
     const [isAnimating, setIsAnimating] = useState(false);
     const prevCpuId = useRef(cpuActivaId);

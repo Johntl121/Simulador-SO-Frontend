@@ -15,7 +15,7 @@ export const ColaProcesos: React.FC<ColaProcesosProps> = ({
   tipoCola,
 }) => {
   // Obtenemos los IDs de procesos y el diccionario del backendData
-  const procesosIds = useSimuladorStore(state => state.backendData?.colasProcesos[tipoCola] || []);
+  const procesosIds = useSimuladorStore(state => state.backendData?.colasProcesos?.[tipoCola] || []);
   const diccionarioProcesos = useSimuladorStore(state => state.backendData?.diccionarioProcesos || {});
 
   return (
