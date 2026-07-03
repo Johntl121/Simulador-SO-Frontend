@@ -7,6 +7,7 @@ import { SwapArea } from "../components/SwapArea";
 import { DispositivosES } from "../components/DispositivosES";
 import { TablaPaginasHeatmap } from "../components/TablaPaginasHeatmap";
 import { PanelConfiguracion } from "../components/PanelConfiguracion";
+import { ConexionWSHeader } from "../components/ConexionWSHeader";
 import "../styles/global.css";
 ---
 
@@ -35,15 +36,7 @@ import "../styles/global.css";
           <span class="ml-2 text-xs font-mono font-medium text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">v1.0</span>
         </h1>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 text-sm text-slate-400">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          Sistema activo
-        </div>
-      </div>
+      <ConexionWSHeader client:load />
     </header>
 
     <div class="flex-1 grid grid-cols-12 gap-0 overflow-hidden min-h-0">
