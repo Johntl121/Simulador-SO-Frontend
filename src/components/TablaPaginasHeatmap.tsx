@@ -72,7 +72,7 @@ export const TablaPaginasHeatmap: React.FC = () => {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-6 pt-4 border-t border-slate-800/60">
       <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-3">
         Tabla de Páginas (RAM + SWAP)
       </h3>
