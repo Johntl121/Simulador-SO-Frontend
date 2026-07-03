@@ -83,7 +83,7 @@ export const PanelConfiguracion: React.FC = () => {
   const labelClass = "text-xs font-semibold text-slate-400 uppercase tracking-wider";
 
   return (
-    <div 
+    <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 min-h-screen p-4 transition-opacity ${configuracionAplicada ? 'hidden opacity-0 pointer-events-none' : 'opacity-100'}`}
       style={{ display: configuracionAplicada ? 'none' : 'flex' }}
     >
@@ -97,12 +97,6 @@ export const PanelConfiguracion: React.FC = () => {
         <h1 className="text-2xl font-bold tracking-tight text-slate-100">
           Simulador de Sistema Operativo
         </h1>
-        
-        {!isConectado && (
-          <div className="mt-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-sm text-center max-w-md animate-pulse">
-            <strong>⚠️ Conexión Perdida:</strong> El backend no está conectado. Haz clic en "Conectar al Servidor" abajo o revisa tu backend en Java.
-          </div>
-        )}
         <p className="text-sm text-slate-400 max-w-md text-center">
           Configura los parámetros iniciales del sistema antes de comenzar la simulación.
         </p>

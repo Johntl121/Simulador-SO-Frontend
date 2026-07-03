@@ -5,29 +5,13 @@ export const DispositivosES: React.FC = () => {
   const { backendData, enviarComandoWS } = useSimuladorStore();
   const dispositivos = backendData?.dispositivosES || [];
 
-  const findDispositivo = (nombre: string) => {
-    return dispositivos.find((d) => d.nombre.toLowerCase() === nombre.toLowerCase());
-  };
-
-  const renderDispositivo = (nombre: string) => {
-    const disp = findDispositivo(nombre);
-    if (!disp) {
-      return (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-md">
-          <h4 className="font-bold text-sm uppercase tracking-wider text-slate-300 mb-2">{nombre}</h4>
-          <p className="text-xs text-slate-500 italic">No configurado</p>
-        </div>
-      );
-    }
-
-    const requiresKeyboardInput = nombre === 'Teclado' && disp.procesoActualId;
-
+  const renderDispositivo = (disp: any, index: number) => {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-md relative overflow-hidden">
+      <div key={index} className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-md relative overflow-hidden shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h4 className="font-bold text-sm uppercase tracking-wider text-slate-300">{disp.nombre}</h4>
           <span className="text-xs bg-slate-700 px-2 py-0.5 rounded-full text-slate-300">
-            Cola: {disp.colaEspera.length}
+            Cola: {disp.colaEspera?.length || 0}
           </span>
         </div>
 
@@ -43,9 +27,9 @@ export const DispositivosES: React.FC = () => {
           )}
         </div>
 
-        {disp.colaEspera.length > 0 ? (
+        {disp.colaEspera?.length > 0 ? (
           <div className="flex flex-wrap gap-1">
-            {disp.colaEspera.map((pid) => (
+            {disp.colaEspera.map((pid: string) => (
               <span
                 key={pid}
                 className="bg-slate-700/60 text-slate-300 text-[10px] font-mono px-2 py-0.5 rounded"
@@ -59,7 +43,7 @@ export const DispositivosES: React.FC = () => {
         )}
 
         {/* Prompt Interactivo para el Teclado */}
-        {nombre === 'Teclado' && disp.procesoActualId && (
+        {disp.nombre.toLowerCase() === 'teclado' && disp.procesoActualId && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-sm p-3">
             <p className="text-green-400 font-mono text-xs font-bold text-center mb-2">
               {`> PROMPT: El proceso ${disp.procesoActualId} requiere entrada.`}
@@ -70,7 +54,7 @@ export const DispositivosES: React.FC = () => {
                   console.log('Comando enviado: C');
                   enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "C" });
                 }}
-                className="bg-green-600/20 text-green-400 border border-green-500 hover:bg-green-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors"
+                className="bg-green-600/20 text-green-400 border border-green-500 hover:bg-green-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors cursor-pointer"
               >
                 [C] Continuar
               </button>
@@ -79,7 +63,7 @@ export const DispositivosES: React.FC = () => {
                   console.log('Comando enviado: X');
                   enviarComandoWS({ action: "teclado_input", idProceso: disp.procesoActualId, input: "X" });
                 }}
-                className="bg-red-600/20 text-red-400 border border-red-500 hover:bg-red-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors"
+                className="bg-red-600/20 text-red-400 border border-red-500 hover:bg-red-500 hover:text-white px-3 py-1 rounded font-mono text-[10px] transition-colors cursor-pointer"
               >
                 [X] Cancelar
               </button>
@@ -91,10 +75,8 @@ export const DispositivosES: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full overflow-y-auto">
-      {renderDispositivo('Impresora')}
-      {renderDispositivo('Disco')}
-      {renderDispositivo('Teclado')}
+    <div className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-250px)] pr-2 custom-scrollbar">
+      {dispositivos.map((disp, index) => renderDispositivo(disp, index))}
     </div>
   );
 };
