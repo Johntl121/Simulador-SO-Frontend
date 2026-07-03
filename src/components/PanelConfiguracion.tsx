@@ -37,8 +37,6 @@ export const PanelConfiguracion: React.FC = () => {
     setConfiguracionAplicada(true);
   };
 
-  if (configuracionAplicada) return null;
-
   /* ---------- helpers para el badge de estado ---------- */
   const estadoBadge = () => {
     switch (estadoConexionWS) {
@@ -85,9 +83,12 @@ export const PanelConfiguracion: React.FC = () => {
   const labelClass = "text-xs font-semibold text-slate-400 uppercase tracking-wider";
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 min-h-screen p-4">
+    <div 
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 min-h-screen p-4 transition-opacity ${configuracionAplicada ? 'hidden opacity-0 pointer-events-none' : 'opacity-100'}`}
+      style={{ display: configuracionAplicada ? 'none' : 'flex' }}
+    >
       {/* ── Cabecera decorativa ── */}
-      <div className="mb-8 flex flex-col items-center gap-3 select-none">
+      <div className="mb-8 flex flex-col items-center gap-3">
         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -96,6 +97,12 @@ export const PanelConfiguracion: React.FC = () => {
         <h1 className="text-2xl font-bold tracking-tight text-slate-100">
           Simulador de Sistema Operativo
         </h1>
+        
+        {!isConectado && (
+          <div className="mt-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-sm text-center max-w-md animate-pulse">
+            <strong>⚠️ Conexión Perdida:</strong> El backend no está conectado. Haz clic en "Conectar al Servidor" abajo o revisa tu backend en Java.
+          </div>
+        )}
         <p className="text-sm text-slate-400 max-w-md text-center">
           Configura los parámetros iniciales del sistema antes de comenzar la simulación.
         </p>
