@@ -33,7 +33,17 @@ interface SimuladorStore extends EstadoGlobalSO {
     setConfiguracionAplicada: (valor: boolean) => void;
 
     // Historial de resultados
-    historialResultados: Array<{ id: string, algoritmo: string, ticksTotales: number, pageFaults: number, thrashing: number, fragmentacion: number }>;
+    historialResultados: Array<{ 
+        id: string; 
+        algoritmo: string; 
+        ticksTotales: number; 
+        pageFaults: number; 
+        thrashing: number; 
+        fragmentacion: number;
+        tiempoEspera: number;
+        tiempoRespuesta: number;
+        estrategiaAsignacion: string;
+    }>;
     guardarResultadoActual: () => void;
     limpiarHistorial: () => void;
 }
@@ -129,14 +139,39 @@ export const useSimuladorStore = create<SimuladorStore>((set, get) => ({
         const state = get();
         if (!state.backendData) return;
 
+        const procesos = Object.values(state.backendData.diccionarioProcesos);
+        const totalProcesos = procesos.length;
+        
+        let sumEspera = 0;
+        let sumRespuesta = 0;
+        
+        if (totalProcesos > 0) {
+            for (const p of procesos) {
+                sumEspera += p.ticksEsperando || 0;
+                const llegada = p.tickLlegada || 0;
+                const primeraEjecucion = p.tickPrimeraEjecucion || 0;
+                if (primeraEjecucion >= llegada) {
+                    sumRespuesta += (primeraEjecucion - llegada);
+                }
+            }
+        }
+
+        const tiempoEsperaPromedio = totalProcesos > 0 ? Number((sumEspera / totalProcesos).toFixed(2)) : 0;
+        const tiempoRespuestaPromedio = totalProcesos > 0 ? Number((sumRespuesta / totalProcesos).toFixed(2)) : 0;
+
+        const estrategia = state.backendData.configuracion.asignacionMemoria || "FIRST_FIT";
         const etiqueta = state.backendData.configuracion.algoritmoPlanificacion + ' + ' + state.backendData.configuracion.reemplazoPaginas;
+        
         const nuevoResultado = {
             id: Date.now().toString(),
             algoritmo: etiqueta,
             ticksTotales: state.backendData.tickActual,
             pageFaults: state.backendData.gestionMemoria.pageFaultsTotales,
             thrashing: state.backendData.gestionMemoria.porcentajeThrashing || 0,
-            fragmentacion: Math.floor(Math.random() * 20) + 5
+            fragmentacion: state.backendData.gestionMemoria.porcentajeFragmentacion || 0,
+            tiempoEspera: tiempoEsperaPromedio,
+            tiempoRespuesta: tiempoRespuestaPromedio,
+            estrategiaAsignacion: estrategia
         };
 
         set({ historialResultados: [...state.historialResultados, nuevoResultado] });

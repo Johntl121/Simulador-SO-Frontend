@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSimuladorStore } from '../store/useSimuladorStore';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend
 } from 'recharts';
 
 interface ModalEstadisticasProps {
@@ -51,10 +51,10 @@ export const ModalEstadisticas: React.FC<ModalEstadisticasProps> = ({ isOpen, on
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
-            {/* Gráfico 1: Tiempos de Ejecución */}
+            {/* Gráfico 1: Rendimiento CPU */}
             <div className="bg-slate-900 border border-slate-700/60 rounded-xl p-5 shadow-lg h-80 flex flex-col">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4 text-center">
-                Tiempos de Ejecución (Ticks)
+                Rendimiento CPU (Ticks)
               </h3>
               <div className="flex-1 min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -63,7 +63,9 @@ export const ModalEstadisticas: React.FC<ModalEstadisticasProps> = ({ isOpen, on
                     <XAxis dataKey="algoritmo" stroke="#94a3b8" fontSize={11} tickMargin={10} angle={-15} textAnchor="end" />
                     <YAxis stroke="#94a3b8" fontSize={11} />
                     <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc', borderRadius: '0.5rem' }} cursor={{ fill: '#334155', opacity: 0.4 }} />
-                    <Bar dataKey="ticksTotales" name="Ticks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#cbd5e1' }} />
+                    <Bar dataKey="tiempoEspera" name="Tiempo de Espera" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="tiempoRespuesta" name="Tiempo de Respuesta" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -72,16 +74,16 @@ export const ModalEstadisticas: React.FC<ModalEstadisticasProps> = ({ isOpen, on
             {/* Gráfico 2: Fragmentación Interna */}
             <div className="bg-slate-900 border border-slate-700/60 rounded-xl p-5 shadow-lg h-80 flex flex-col">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4 text-center">
-                Fragmentación Interna
+                Fragmentación Interna (%)
               </h3>
               <div className="flex-1 min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={historialResultados} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                    <XAxis dataKey="algoritmo" stroke="#94a3b8" fontSize={11} tickMargin={10} angle={-15} textAnchor="end" />
+                    <XAxis dataKey="estrategiaAsignacion" stroke="#94a3b8" fontSize={11} tickMargin={10} angle={-15} textAnchor="end" />
                     <YAxis stroke="#94a3b8" fontSize={11} />
                     <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: 'none', color: '#f8fafc', borderRadius: '0.5rem' }} cursor={{ fill: '#334155', opacity: 0.4 }} />
-                    <Bar dataKey="fragmentacion" name="Fragmentación" fill="#f97316" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="fragmentacion" name="% Fragmentación" fill="#f97316" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -41,6 +41,7 @@ export interface GestionMemoria {
   totalAccesos: number;
   pageFaultsTotales: number;
   porcentajeThrashing: number;
+  porcentajeFragmentacion?: number; // Agregado para el backend futuro
   marcosRAM: MarcoRAM[];
   areaSwap: AreaSwap;
 }
@@ -61,6 +62,9 @@ export interface ProcesoDetalle {
   id: string;
   estado: string;
   burstTimeRestante: number;
+  tickLlegada?: number;
+  tickPrimeraEjecucion?: number;
+  ticksEsperando?: number;
 }
 
 export interface PayloadBackend {
