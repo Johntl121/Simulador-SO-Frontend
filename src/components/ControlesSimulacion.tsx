@@ -31,12 +31,17 @@ export const ControlesSimulacion: React.FC = () => {
         try {
           const data = JSON.parse(text);
           data.forEach((proc: any) => {
+            if (!proc.id || isNaN(Number(proc.instrucciones))) return;
+            
             enviarComandoWS({
               action: "admitir",
               id: proc.id,
               totalInstrucciones: Number(proc.instrucciones),
-              bytesStack: Number(proc.stack),
-              bytesHeap: Number(proc.heap)
+              bytesStack: Number(proc.stack) || 0,
+              bytesHeap: Number(proc.heap) || 0,
+              tickLlegada: proc.tickLlegada !== undefined && proc.tickLlegada !== "" && !isNaN(Number(proc.tickLlegada)) 
+                           ? Number(proc.tickLlegada) 
+                           : -1
             });
           });
         } catch (error) {
@@ -47,16 +52,21 @@ export const ControlesSimulacion: React.FC = () => {
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i].trim();
           if (!line) continue;
-          const [idStr, instrucciones, stack, heap] = line.split(',');
-          if (idStr && instrucciones && stack && heap) {
-            enviarComandoWS({
-              action: "admitir",
-              id: idStr.trim(),
-              totalInstrucciones: Number(instrucciones.trim()),
-              bytesStack: Number(stack.trim()),
-              bytesHeap: Number(heap.trim())
-            });
-          }
+          
+          const [idStr, instrucciones, stack, heap, tickLlegada] = line.split(',');
+          
+          if (!idStr || !idStr.trim() || isNaN(Number(instrucciones))) continue;
+
+          enviarComandoWS({
+            action: "admitir",
+            id: idStr.trim(),
+            totalInstrucciones: Number(instrucciones),
+            bytesStack: Number(stack) || 0,
+            bytesHeap: Number(heap) || 0,
+            tickLlegada: tickLlegada !== undefined && tickLlegada.trim() !== "" && !isNaN(Number(tickLlegada)) 
+                         ? Number(tickLlegada.trim()) 
+                         : -1
+          });
         }
       }
       if (fileInputRef.current) fileInputRef.current.value = '';
