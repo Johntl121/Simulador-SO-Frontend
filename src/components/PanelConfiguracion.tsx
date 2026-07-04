@@ -6,7 +6,7 @@ export const PanelConfiguracion: React.FC = () => {
   const [quantum, setQuantum] = useState(4);
   const [tamanoPagina, setTamanoPagina] = useState(32768);
   const [tamanoRam, setTamanoRam] = useState(2097152);
-  const [asignacionMemoria, setAsignacionMemoria] = useState("FIRST_FIT");
+
   const [reemplazoPaginas, setReemplazoPaginas] = useState("FIFO");
 
   const {
@@ -31,7 +31,7 @@ export const PanelConfiguracion: React.FC = () => {
       quantum: algoritmo === "RR" ? Number(quantum) : 0,
       tamanoPagina: Number(tamanoPagina),
       tamanoRam: Number(tamanoRam),
-      asignacionMemoria,
+      asignacionMemoria: "FIRST_FIT",
       reemplazoPaginas,
     });
     setConfiguracionAplicada(true);
@@ -185,11 +185,11 @@ export const PanelConfiguracion: React.FC = () => {
             {/* Estrategia de Memoria */}
             <div className="flex flex-col gap-1.5">
               <label className={labelClass}>Estrategia de Memoria</label>
-              <select value={asignacionMemoria} onChange={(e) => setAsignacionMemoria(e.target.value)} className={selectClass}>
-                <option value="FIRST_FIT">First-Fit</option>
-                <option value="BEST_FIT">Best-Fit</option>
-                <option value="WORST_FIT">Worst-Fit</option>
-              </select>
+              <div className={`${selectClass} opacity-60 cursor-not-allowed flex items-center gap-2 bg-slate-800/50`}>
+                <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                First-Fit
+                <span className="ml-auto text-[10px] text-slate-500 font-normal normal-case tracking-normal">Memoria virtual paginada</span>
+              </div>
             </div>
 
             {/* Reemplazo de Páginas */}
